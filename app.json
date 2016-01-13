@@ -1,0 +1,6 @@
+{
+  "name": "Lyric Demo Integration Server",
+  "description": "A barebones server that demonstrates calling the Lyric API to register clients in the Lyric system.",
+  "repository": "https://github.com/LyricFinancial/demo-integration-server",
+  "keywords": ["lyric", "server", "demo"]
+}
