@@ -45,7 +45,7 @@ public class DemoApi extends AbstractVerticle {
         //final JsonObject serverOptions = config().getJsonObject("serverOptions");
         final JsonObject serverOptions = new JsonObject();
         // Convert port to int
-        serverOptions.put("port", 8080).put("host", "0.0.0.0");
+        serverOptions.put("port", Integer.parseInt(System.getenv("PORT"))).put("host", "0.0.0.0");
 
         vertx.createHttpServer(new HttpServerOptions(serverOptions)).requestHandler(router::accept).listen(asyncResult -> {
             if (asyncResult.failed()) {
