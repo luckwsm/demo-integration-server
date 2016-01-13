@@ -70,11 +70,13 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClient client = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
         String userInfo = routingContext.getBodyAsString();
+        logger.info(userInfo);
 
 
         HttpClientRequest request = client.post("/vendorAPI/v1/json/clients", resp -> {
             if (resp.statusCode() != 201) {
                 logger.info("GOT ERROR BACK");
+                logger.error(resp.statusMessage());
                 response.setStatusMessage(resp.statusMessage());
                 response.setStatusCode(resp.statusCode()).end();
                 return;
