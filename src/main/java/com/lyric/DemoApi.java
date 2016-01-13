@@ -44,7 +44,7 @@ public class DemoApi extends AbstractVerticle {
         //final JsonObject serverOptions = config().getJsonObject("serverOptions");
         final JsonObject serverOptions = new JsonObject();
         // Convert port to int
-        serverOptions.put("port", 8080).put("host", "0.0.0.0");
+        serverOptions.put("port", 443).put("host", "0.0.0.0");
 
         vertx.createHttpServer(new HttpServerOptions(serverOptions)).requestHandler(router::accept).listen(asyncResult -> {
             if (asyncResult.failed()) {
@@ -59,7 +59,7 @@ public class DemoApi extends AbstractVerticle {
     }
 
     private void handleAdvanceRequest(RoutingContext routingContext) {
-
+        logger.info("INTO HANDLE ADVANCE REQUEST");
         HttpServerResponse response = routingContext.response();
 
         HttpClient client = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
@@ -68,11 +68,12 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClientRequest request = client.post("/vendorAPI/v1/json/clients", resp -> {
             if (resp.statusCode() != 201) {
+                logger.info("GOT ERROR BACK");
                 response.setStatusMessage(resp.statusMessage());
                 response.setStatusCode(resp.statusCode()).end();
                 return;
             }
-
+            logger.info("SUCCESS");
             JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
             response.putHeader("content-type", "application/json").end(obj.encodePrettily());
         });
