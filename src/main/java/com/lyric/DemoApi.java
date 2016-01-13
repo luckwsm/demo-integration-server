@@ -39,6 +39,7 @@ public class DemoApi extends AbstractVerticle {
         router.route().handler(BodyHandler.create());
 
         router.post("/members/:id/advance").handler(this::handleAdvanceRequest);
+        router.get("/test").handler(this::handleTest);
 
 
         //final JsonObject serverOptions = config().getJsonObject("serverOptions");
@@ -56,6 +57,11 @@ public class DemoApi extends AbstractVerticle {
         });
 
 
+    }
+
+    private void handleTest(RoutingContext routingContext){
+        JsonObject obj = new JsonObject().put("test", "yay");
+        routingContext.response().putHeader("content-type", "application/json").end(obj.encodePrettily());
     }
 
     private void handleAdvanceRequest(RoutingContext routingContext) {
