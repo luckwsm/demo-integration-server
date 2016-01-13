@@ -67,5 +67,5 @@ task wrapper(type: Wrapper) {
 }
 
 task stage {
-    dependsOn build
+    dependsOn shadowJar
 }
