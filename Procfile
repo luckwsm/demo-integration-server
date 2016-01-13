@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Dhttp.port=$PORT -jar build/libs/demo-integration-server-0.0.1-SNAPSHOT-fat.jar
+web: java $JAVA_OPTS -Dhttp.port=$PORT -jar target/demo-integration-server-0.0.1-SNAPSHOT-fat.jar
