@@ -77,7 +77,11 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClientRequest request = httpClient.post("/vendorAPI/v1/json/clients", resp -> {
             if (resp.statusCode() != 201) {
-                logger.error(String.format("An error occurred trying to register the client for an advance: %s", resp.statusMessage()));
+
+                resp.bodyHandler(buf -> {
+                    logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
+                });
+
                 response.setStatusMessage(resp.statusMessage());
                 response.setStatusCode(resp.statusCode()).end();
                 return;
@@ -133,7 +137,8 @@ public class DemoApi extends AbstractVerticle {
                 .put("state", "NE")
                 .put("zipCode", "68123")
                 .put("vendorClientAccountId", vendorClientAccountId)
-                .put("ssn", String.format("333-44-%d", random))
+                .put("taxEinTinSsn", String.format("333-44-%d", random))
+                .put("tinType", "ssn")
                 .put("phone", String.format("207555%d", random))
                 .put("mobilePhone", String.format("207556%d", random))
                 .put("bankName", "Bank of America")
