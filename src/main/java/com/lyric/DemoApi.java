@@ -42,7 +42,7 @@ public class DemoApi extends AbstractVerticle {
         router.post("/clients/:id/advance").handler(this::handleAdvanceRequest);
 
         final JsonObject serverOptions = new JsonObject();
-        // Convert port to int
+
         serverOptions.put("port", Integer.parseInt(System.getenv("PORT"))).put("host", "0.0.0.0");
 
         vertx.createHttpServer(new HttpServerOptions(serverOptions)).requestHandler(router::accept).listen(asyncResult -> {
@@ -53,8 +53,6 @@ public class DemoApi extends AbstractVerticle {
             logger.info("Http Server Started Successfully");
             startFuture.complete();
         });
-
-
     }
 
     private void handleAdvanceRequest(RoutingContext routingContext) {
@@ -64,13 +62,13 @@ public class DemoApi extends AbstractVerticle {
         String clientId = routingContext.request().getParam("id");
 
         if(clientId == null){
-            response.setStatusMessage("Member Id cannot be null.");
+            response.setStatusMessage("Client Id cannot be null.");
             response.setStatusCode(500).end();
         }
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
 
-        /* Look up member data from your system */
+        /* Look up client data from your system */
         JsonObject client = findClient(clientId);
 
         logger.info(client);
@@ -79,7 +77,7 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClientRequest request = httpClient.post("/vendorAPI/v1/json/clients", resp -> {
             if (resp.statusCode() != 201) {
-                logger.error(String.format("An error occurred trying to register the member for an advance: %s", resp.statusMessage()));
+                logger.error(String.format("An error occurred trying to register the client for an advance: %s", resp.statusMessage()));
                 response.setStatusMessage(resp.statusMessage());
                 response.setStatusCode(resp.statusCode()).end();
                 return;
@@ -96,10 +94,10 @@ public class DemoApi extends AbstractVerticle {
 
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
-        provided.  The content-type will depend on how the royalty data is being sent.
+        provided to you.  The content-type will depend on how the royalty data is being sent.
          */
         request.putHeader("vendorId", "ascap");
-        request.putHeader("content-type", contentType);
+        request.putHeader("content-type", "application/json");
 
         /* Username and password are used to generate the authorization header.  These values need to
         be base64 encoded to create the new authorization token.
