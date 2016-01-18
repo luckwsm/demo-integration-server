@@ -118,7 +118,9 @@ public class DemoApi extends AbstractVerticle {
                 resp.bodyHandler(buf -> {
                     logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
                     response.setStatusMessage(buf.toString());
+                    response.end();
                 });
+                return;
             }
             /* The POST to the registration API returns an ACCESS_TOKEN in the header.  This header
             is needed to pass back to the lyric-snippet so you need to send it back to your client.
