@@ -68,6 +68,8 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
 
+
+
         String contentType = routingContext.request().getHeader("content-type");
 
         /* See if there is data in the body, otherwise look up client data from your system */
@@ -91,7 +93,7 @@ public class DemoApi extends AbstractVerticle {
 
 
             response.setStatusCode(resp.statusCode());
-            response.headers().setAll(resp.headers());
+            response.headers().set("access_token", resp.getHeader("access_token"));
 //            response.setChunked(true);
 //            resp.dataHandler(new Handler<Buffer>() {
 //                public void handle(Buffer data) {
@@ -126,8 +128,6 @@ public class DemoApi extends AbstractVerticle {
 //            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
             response.putHeader("content-type", "application/json").end();
         });
-
-        request.headers().remove(HttpHeaders.HOST);
 
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
