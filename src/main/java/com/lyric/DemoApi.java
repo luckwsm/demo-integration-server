@@ -3,6 +3,9 @@ package com.lyric;
 import com.google.common.collect.Sets;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.VoidHandler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -59,28 +62,31 @@ public class DemoApi extends AbstractVerticle {
 
     private void handleAdvanceRequest(RoutingContext routingContext) {
         logger.info("INTO HANDLE ADVANCE REQUEST");
-        HttpServerResponse response = routingContext.response();
+        HttpServerRequest req = routingContext.request();
 
         String clientId = routingContext.request().getParam("id");
 
         if(clientId == null){
-            response.setStatusMessage("Client Id cannot be null.");
-            response.setStatusCode(500).end();
+            req.response().setStatusMessage("Client Id cannot be null.");
+            req.response().setStatusCode(500).end();
         }
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
 
-
-
-        String contentType = routingContext.request().getHeader("content-type");
+        String contentType = req.getHeader("content-type");
 
         /* See if there is data in the body, otherwise look up client data from your system */
-        String client = routingContext.getBodyAsString();
-        if(client == null || client.equals("")){
-            client = findClient(clientId);
-        }
+//        String client = routingContext.getBodyAsString();
+//        if(client == null || client.equals("")){
+//            client = findClient(clientId);
+//        }
+//
+//        logger.info(client);
+        Buffer body = routingContext.getBody();
 
-        logger.info(client);
+//        if(body == null || body == ""){
+//            body = findClient(clientId).to
+//        }
 
         String url;
 
@@ -95,10 +101,10 @@ public class DemoApi extends AbstractVerticle {
                 break;
         }
 
-        HttpClientRequest request = httpClient.post(url, resp -> {
+        HttpClientRequest cReq = httpClient.post(url, resp -> {
 
             logger.info("******GOT RESPONSE");
-            response.setStatusCode(resp.statusCode());
+            req.response().setStatusCode(resp.statusCode());
 //            response.setChunked(true);
 //            resp.dataHandler(new Handler<Buffer>() {
 //                public void handle(Buffer data) {
@@ -118,12 +124,12 @@ public class DemoApi extends AbstractVerticle {
 //                }
 //            });
 
-            if (resp.statusCode() != 201) {
+            if (resp.statusCode() == 400) {
                 resp.bodyHandler(buf -> {
                     logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
                     JsonObject error = new JsonObject(buf.toString());
-                    response.setStatusMessage(error.getString("message") + error.getJsonArray("errors").toString());
-                    response.end();
+                    req.response().setStatusMessage(error.getString("message") + error.getJsonArray("errors").toString());
+                    req.response().end();
                 });
                 return;
             }
@@ -134,15 +140,16 @@ public class DemoApi extends AbstractVerticle {
             so that any future calls will do updates to the system.
              */
 //            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
-            response.putHeader("access_token", resp.getHeader(ACCESS_TOKEN)).end();
+            req.response().putHeader("access_token", resp.getHeader(ACCESS_TOKEN)).end();
         });
 
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
         provided to you.  The content-type will depend on how the royalty data is being sent.
          */
-        request.putHeader("vendorId", "ascap");
-        request.putHeader("content-type", contentType);
+        cReq.putHeader("vendorId", "ascap");
+        cReq.putHeader("content-type", contentType);
+
 
         /* Username and password are used to generate the authorization header.  These values need to
         be base64 encoded to create the new authorization token.
@@ -153,9 +160,23 @@ public class DemoApi extends AbstractVerticle {
         } catch (UnsupportedEncodingException e) {
             logger.error("Could not create client credentials", e.getCause());
         }
-        request.putHeader(HttpHeaders.AUTHORIZATION, "Basic " + authToken);
+        cReq.putHeader(HttpHeaders.AUTHORIZATION, "Basic " + authToken);
 
-        request.end(client);
+        cReq.setChunked(true);
+        cReq.write(body);
+        cReq.end();
+//        req.handler(data -> {
+//            logger.debug("Proxying request body:" + data);
+//            cReq.write(data);
+//        });
+//        req.endHandler(new VoidHandler() {
+//            public void handle() {
+//                logger.debug("end of the request");
+//                cReq.end();
+//            }
+//        });
+
+        //request.end(client);
     }
 
     /* This gets a unique user every time for testing purposes.  This would really be a lookup from

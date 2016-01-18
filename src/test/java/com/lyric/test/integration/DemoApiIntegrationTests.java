@@ -5,6 +5,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -56,6 +57,27 @@ public class DemoApiIntegrationTests {
             async.complete();
         });
         request.headers().set("content-type", "application/json");
-        request.end();
+
+        JsonObject clientInfo = new JsonObject()
+                .put("firstName", String.format("Test%d", random))
+                .put("lastName", String.format("User%d", random))
+                .put("address1", "327 S 87 St")
+                .put("email", String.format("%s@email.com", random))
+                .put("city", "Omaha")
+                .put("state", "NE")
+                .put("zipCode", "68123")
+                .put("vendorClientAccountId", random)
+                .put("taxEinTinSsn", String.format("333-44-%d", random))
+                .put("tinType", "ssn")
+                .put("phone", String.format("207555%d", random))
+                .put("mobilePhone", String.format("207556%d", random))
+                .put("bankName", "Bank of America")
+                .put("bankAccountNumber", "12345678")
+                .put("bankRoutingNumber", "211274450")
+                .put("bankAccountType", "checking")
+                .put("dob", "1967-01-01")
+                ;
+
+        request.end(clientInfo.toString());
     }
 }
