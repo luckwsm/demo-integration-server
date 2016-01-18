@@ -101,10 +101,12 @@ public class DemoApi extends AbstractVerticle {
                 break;
         }
 
-        HttpClientRequest cReq = httpClient.post(url, resp -> {
+        HttpClientRequest cReq = httpClient.post(url, cRes -> {
 
             logger.info("******GOT RESPONSE");
-            req.response().setStatusCode(resp.statusCode());
+            req.response().setStatusCode(cRes.statusCode());
+
+            req.response().headers().setAll(cRes.headers());
 //            response.setChunked(true);
 //            resp.dataHandler(new Handler<Buffer>() {
 //                public void handle(Buffer data) {
@@ -124,8 +126,8 @@ public class DemoApi extends AbstractVerticle {
 //                }
 //            });
 
-            if (resp.statusCode() == 400) {
-                resp.bodyHandler(buf -> {
+            if (cRes.statusCode() == 400) {
+                cRes.bodyHandler(buf -> {
                     logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
                     JsonObject error = new JsonObject(buf.toString());
                     req.response().setStatusMessage(error.getString("message") + error.getJsonArray("errors").toString());
@@ -133,6 +135,10 @@ public class DemoApi extends AbstractVerticle {
                 });
                 return;
             }
+
+//            if(resp.statusCode() != 201){
+//
+//            }
             /* The POST to the registration API returns an ACCESS_TOKEN in the header.  This header
             is needed to pass back to the lyric-snippet so you need to send it back to your client.
 
@@ -140,7 +146,7 @@ public class DemoApi extends AbstractVerticle {
             so that any future calls will do updates to the system.
              */
 //            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
-            req.response().putHeader("access_token", resp.getHeader(ACCESS_TOKEN)).end();
+            req.response().end();
         });
 
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
@@ -206,8 +212,7 @@ public class DemoApi extends AbstractVerticle {
                 .put("bankAccountNumber", "12345678")
                 .put("bankRoutingNumber", "211274450")
                 .put("bankAccountType", "checking")
-                .put("dob", "1967-01-01")
-                ;
+                .put("dob", "1967-01-01");
 
         return clientInfo.toString();
     }
