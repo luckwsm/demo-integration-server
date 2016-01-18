@@ -11,13 +11,13 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.EnumUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Created by amadden on 1/12/16.
@@ -68,23 +68,54 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
 
-        /* Look up client data from your system */
-        JsonObject client = findClient(clientId);
+        String contentType = routingContext.request().getHeader("content-type");
+
+        /* See if there is data in the body, otherwise look up client data from your system */
+        String client = routingContext.getBodyAsString();
+        if(client == null || client.equals("")){
+            client = findClient(clientId);
+        }
 
         logger.info(client);
 
-        String contentType = routingContext.request().getHeader("content-type");
+        String url;
 
-        HttpClientRequest request = httpClient.post("/vendorAPI/v1/json/clients", resp -> {
+        switch (contentType){
+            case "multipart/form-data": url = "/vendorAPI/v1/multipart/clients";
+                break;
+            default: url = "/vendorAPI/v1/json/clients";
+                break;
+        }
+
+        HttpClientRequest request = httpClient.post(url, resp -> {
+
+
+            response.setStatusCode(resp.statusCode());
+            response.headers().setAll(resp.headers());
+//            response.setChunked(true);
+//            resp.dataHandler(new Handler<Buffer>() {
+//                public void handle(Buffer data) {
+//                    logger.debug("Proxying response body:" + data);
+//                    response.write(data);
+//                }
+//            });
+//            resp.dataHandler(buf -> {
+//                logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
+//                response.setStatusMessage(buf.toString());
+//                response.setStatusCode(statusCode).end();
+//            });
+
+//            resp.endHandler(new VoidHandler() {
+//                public void handle() {
+//                    response.end();
+//                }
+//            });
+
             if (resp.statusCode() != 201) {
-
                 resp.bodyHandler(buf -> {
                     logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
+                    response.setStatusMessage(buf.toString());
                 });
-
-                response.setStatusMessage(resp.statusMessage());
-                response.setStatusCode(resp.statusCode()).end();
-                return;
             }
             /* The POST to the registration API returns an ACCESS_TOKEN in the header.  This header
             is needed to pass back to the lyric-snippet so you need to send it back to your client.
@@ -92,8 +123,8 @@ public class DemoApi extends AbstractVerticle {
             Also, a memberToken is returned in the body.  This token should be saved to your database
             so that any future calls will do updates to the system.
              */
-            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
-            response.putHeader("content-type", "application/json").end(obj.encodePrettily());
+//            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
+            response.putHeader("content-type", "application/json").end();
         });
 
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
@@ -101,7 +132,7 @@ public class DemoApi extends AbstractVerticle {
         provided to you.  The content-type will depend on how the royalty data is being sent.
          */
         request.putHeader("vendorId", "ascap");
-        request.putHeader("content-type", "application/json");
+        request.putHeader("content-type", contentType);
 
         /* Username and password are used to generate the authorization header.  These values need to
         be base64 encoded to create the new authorization token.
@@ -114,19 +145,18 @@ public class DemoApi extends AbstractVerticle {
         }
         request.putHeader(HttpHeaders.AUTHORIZATION, "Basic " + authToken);
 
-        request.end(client.toString());
+        request.end(client);
     }
 
     /* This gets a unique user every time for testing purposes.  This would really be a lookup from
     your database.
      */
-    private JsonObject findClient(String vendorClientAccountId){
+    private String findClient(String vendorClientAccountId){
 
         int START = 1000;
         int END = 9999;
         Random r = new Random();
         int random = r.nextInt((END - START) + 1) + START;
-
 
         JsonObject clientInfo = new JsonObject()
                 .put("firstName", String.format("Test%d", random))
@@ -148,7 +178,7 @@ public class DemoApi extends AbstractVerticle {
                 .put("dob", "1967-01-01")
                 ;
 
-        return clientInfo;
+        return clientInfo.toString();
     }
 
     private String createCredentials(String username, String password) throws UnsupportedEncodingException {

@@ -5,17 +5,14 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Date;
 import java.util.Random;
 
 /**
@@ -40,7 +37,7 @@ public class DemoApiIntegrationTests {
         vertx.close(context.asyncAssertSuccess());
     }
 
-    @Ignore
+//    @Ignore
     @Test
     public void testShouldReturnAccessToken(TestContext context){
 
@@ -53,15 +50,12 @@ public class DemoApiIntegrationTests {
         int random = r.nextInt((END - START) + 1) + START;
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
-
-            context.assertEquals(200, resp.statusCode());
-            resp.bodyHandler(body -> {
-                JsonObject token = new JsonObject(body.toString());
-                context.assertNotNull(token.getString("access_token"));
-                async.complete();
-            });
+            context.assertEquals(201, resp.statusCode());
+            String token = resp.getHeader("ACCESS_TOKEN");
+            context.assertNotNull(token);
+            async.complete();
         });
-
+        request.headers().set("content-type", "application/json");
         request.end();
     }
 }
