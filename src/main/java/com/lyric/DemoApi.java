@@ -93,7 +93,7 @@ public class DemoApi extends AbstractVerticle {
 
 
             response.setStatusCode(resp.statusCode());
-            response.headers().set("access_token", resp.getHeader("access_token"));
+            response.putHeader("access_token", resp.getHeader("access_token"));
 //            response.setChunked(true);
 //            resp.dataHandler(new Handler<Buffer>() {
 //                public void handle(Buffer data) {
