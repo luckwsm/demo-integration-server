@@ -91,7 +91,7 @@ public class DemoApi extends AbstractVerticle {
 
 
             response.setStatusCode(resp.statusCode());
-            response.headers().set("ACCESS_TOKEN", resp.getHeader("ACCESS_TOKEN"));
+            response.headers().setAll(resp.headers());
 //            response.setChunked(true);
 //            resp.dataHandler(new Handler<Buffer>() {
 //                public void handle(Buffer data) {
@@ -126,6 +126,8 @@ public class DemoApi extends AbstractVerticle {
 //            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
             response.putHeader("content-type", "application/json").end();
         });
+
+        request.headers().remove(HttpHeaders.HOST);
 
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
