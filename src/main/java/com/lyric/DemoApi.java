@@ -85,15 +85,19 @@ public class DemoApi extends AbstractVerticle {
         String url;
 
         switch (contentType){
-            case "multipart/form-data": url = "/vendorAPI/v1/multipart/clients";
+            case "multipart/form-data":
+                logger.info("******CONTENT TYPE IS MULTIPART, SETTING MULTIPART URL");
+                url = "/vendorAPI/v1/multipart/clients";
                 break;
-            default: url = "/vendorAPI/v1/json/clients";
+            default:
+                logger.info("******CONTENT TYPE IS JSON, SETTING JSON URL");
+                url = "/vendorAPI/v1/json/clients";
                 break;
         }
 
         HttpClientRequest request = httpClient.post(url, resp -> {
 
-
+            logger.info("******GOT RESPONSE");
             response.setStatusCode(resp.statusCode());
 //            response.setChunked(true);
 //            resp.dataHandler(new Handler<Buffer>() {
