@@ -117,7 +117,8 @@ public class DemoApi extends AbstractVerticle {
             if (resp.statusCode() != 201) {
                 resp.bodyHandler(buf -> {
                     logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
-                    response.setStatusMessage(buf.toString());
+                    JsonObject error = new JsonObject(buf.toString());
+                    response.setStatusMessage(error.getString("message") + error.getJsonArray("errors").toString());
                     response.end();
                 });
                 return;
