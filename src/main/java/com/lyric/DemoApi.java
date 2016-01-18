@@ -24,10 +24,12 @@ import java.util.Set;
  */
 public class DemoApi extends AbstractVerticle {
 
+    public static final String ACCESS_TOKEN = "ACCESS_TOKEN";
+
     Logger logger = LoggerFactory.getLogger(DemoApi.class.getName());
     private static Set<HttpMethod> allHttpMethods = Sets.newConcurrentHashSet(EnumUtils.getEnumList(HttpMethod.class));
     private static Set<String> allowedCorsHeaders = Sets.newConcurrentHashSet(Arrays.asList("Accept", "Authorization", "Content-Type", "vendorId"));
-    private CorsHandler corsHandler = CorsHandler.create("*").allowedMethods(allHttpMethods).allowedHeaders(allowedCorsHeaders);
+    private CorsHandler corsHandler = CorsHandler.create("*").allowedMethods(allHttpMethods).allowedHeaders(allowedCorsHeaders).exposedHeader(ACCESS_TOKEN);
 
     @Override
     public void start(Future<Void> startFuture) {
@@ -93,7 +95,6 @@ public class DemoApi extends AbstractVerticle {
 
 
             response.setStatusCode(resp.statusCode());
-            response.putHeader("access_token", resp.getHeader("access_token"));
 //            response.setChunked(true);
 //            resp.dataHandler(new Handler<Buffer>() {
 //                public void handle(Buffer data) {
@@ -126,7 +127,7 @@ public class DemoApi extends AbstractVerticle {
             so that any future calls will do updates to the system.
              */
 //            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
-            response.putHeader("content-type", "application/json").end();
+            response.putHeader("access_token", resp.getHeader(ACCESS_TOKEN)).end();
         });
 
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
