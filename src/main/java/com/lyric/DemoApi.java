@@ -60,7 +60,7 @@ public class DemoApi extends AbstractVerticle {
         });
     }
 
-    private void handleAdvanceRequest(RoutingContext routingContext) {
+    private void handleAdvanceRequest(RoutingContext routingContext){
         logger.info("INTO HANDLE ADVANCE REQUEST");
         HttpServerRequest req = routingContext.request();
 
@@ -69,93 +69,58 @@ public class DemoApi extends AbstractVerticle {
         if(clientId == null){
             req.response().setStatusMessage("Client Id cannot be null.");
             req.response().setStatusCode(500).end();
+            return;
         }
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
 
-        String contentType = req.getHeader("content-type");
-
-        /* See if there is data in the body, otherwise look up client data from your system */
-//        String client = routingContext.getBodyAsString();
-//        if(client == null || client.equals("")){
-//            client = findClient(clientId);
-//        }
-//
-//        logger.info(client);
-        Buffer body = routingContext.getBody();
-
-//        if(body == null || body == ""){
-//            body = findClient(clientId).to
-//        }
-
-        String url;
-
-        switch (contentType){
-            case "multipart/form-data":
-                logger.info("******CONTENT TYPE IS MULTIPART, SETTING MULTIPART URL");
-                url = "/vendorAPI/v1/multipart/clients";
-                break;
-            default:
-                logger.info("******CONTENT TYPE IS JSON, SETTING JSON URL");
-                url = "/vendorAPI/v1/json/clients";
-                break;
-        }
-
-        HttpClientRequest cReq = httpClient.post(url, cRes -> {
-
-            logger.info("******GOT RESPONSE");
+        String uri = getUri(req);
+        logger.info("URI: " + uri);
+        HttpClientRequest cReq = httpClient.post(uri, cRes -> {
+            logger.info("Proxying response: " + cRes.statusCode());
             req.response().setStatusCode(cRes.statusCode());
-
             req.response().headers().setAll(cRes.headers());
-//            response.setChunked(true);
-//            resp.dataHandler(new Handler<Buffer>() {
-//                public void handle(Buffer data) {
-//                    logger.debug("Proxying response body:" + data);
-//                    response.write(data);
-//                }
-//            });
-//            resp.dataHandler(buf -> {
-//                logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
-//                response.setStatusMessage(buf.toString());
-//                response.setStatusCode(statusCode).end();
-//            });
-
-//            resp.endHandler(new VoidHandler() {
-//                public void handle() {
-//                    response.end();
-//                }
-//            });
-
-            if (cRes.statusCode() == 400) {
-                cRes.bodyHandler(buf -> {
-                    logger.error(String.format("An error occurred trying to register the client for an advance: %s", buf.toString()));
-                    JsonObject error = new JsonObject(buf.toString());
-                    req.response().setStatusMessage(error.getString("message") + error.getJsonArray("errors").toString());
-                    req.response().end();
-                });
-                return;
-            }
-
-//            if(resp.statusCode() != 201){
-//
-//            }
-            /* The POST to the registration API returns an ACCESS_TOKEN in the header.  This header
-            is needed to pass back to the lyric-snippet so you need to send it back to your client.
-
-            Also, a memberToken is returned in the body.  This token should be saved to your database
-            so that any future calls will do updates to the system.
-             */
-//            JsonObject obj = new JsonObject().put("access_token", resp.getHeader("ACCESS_TOKEN"));
-            req.response().end();
+            req.response().setChunked(true);
+            cRes.bodyHandler(data -> {
+                logger.debug("Proxying response body:" + data);
+                req.response().write(data);
+                req.response().end();
+            });
         });
 
+        setHeaders(cReq, req);
+
+        cReq.setChunked(true);
+
+        /* See if there is data in the body, otherwise look up client data from your system */
+        Buffer body = routingContext.getBody();
+        if(body.length() == 0){
+            body.appendString(findClient(clientId));
+        }
+        //logger.info("BODY: " + routingContext.getBody().toString());
+        cReq.write(body);
+        cReq.end();
+    }
+
+    private String getUri(HttpServerRequest req) {
+        String uri = "/vendorAPI/v1/json/clients";
+
+        String contentType = req.getHeader("content-type");
+        if(contentType.substring(0, 9).equals("multipart")){
+            uri = "/vendorAPI/v1/multipart/clients";
+        }
+        return uri;
+    }
+
+    private void setHeaders(HttpClientRequest cReq, HttpServerRequest req) {
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
-        provided to you.  The content-type will depend on how the royalty data is being sent.
-         */
-        cReq.putHeader("vendorId", "ascap");
-        cReq.putHeader("content-type", contentType);
+        provided to you.  The content-type will get copied from the server request.
+        */
+        req.headers().remove(HttpHeaders.HOST);
+        cReq.headers().setAll(req.headers());
 
+        cReq.putHeader("vendorId", "ascap");
 
         /* Username and password are used to generate the authorization header.  These values need to
         be base64 encoded to create the new authorization token.
@@ -167,22 +132,6 @@ public class DemoApi extends AbstractVerticle {
             logger.error("Could not create client credentials", e.getCause());
         }
         cReq.putHeader(HttpHeaders.AUTHORIZATION, "Basic " + authToken);
-
-        cReq.setChunked(true);
-        cReq.write(body);
-        cReq.end();
-//        req.handler(data -> {
-//            logger.debug("Proxying request body:" + data);
-//            cReq.write(data);
-//        });
-//        req.endHandler(new VoidHandler() {
-//            public void handle() {
-//                logger.debug("end of the request");
-//                cReq.end();
-//            }
-//        });
-
-        //request.end(client);
     }
 
     /* This gets a unique user every time for testing purposes.  This would really be a lookup from

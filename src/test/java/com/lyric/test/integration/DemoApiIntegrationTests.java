@@ -38,17 +38,13 @@ public class DemoApiIntegrationTests {
         vertx.close(context.asyncAssertSuccess());
     }
 
-//    @Ignore
     @Test
-    public void testShouldReturnAccessToken(TestContext context){
+    public void testWithDataShouldReturnAccessToken(TestContext context){
 
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
 
-        int START = 1000;
-        int END = 9999;
-        Random r = new Random();
-        int random = r.nextInt((END - START) + 1) + START;
+        int random = getRandomNumber();
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
             context.assertEquals(201, resp.statusCode());
@@ -66,7 +62,7 @@ public class DemoApiIntegrationTests {
                 .put("city", "Omaha")
                 .put("state", "NE")
                 .put("zipCode", "68123")
-                .put("vendorClientAccountId", random)
+                .put("vendorClientAccountId", String.format("client%d", random))
                 .put("taxEinTinSsn", String.format("333-44-%d", random))
                 .put("tinType", "ssn")
                 .put("phone", String.format("207555%d", random))
@@ -79,5 +75,31 @@ public class DemoApiIntegrationTests {
                 ;
 
         request.end(clientInfo.toString());
+    }
+
+    @Test
+    public void testWithoutDataShouldReturnAccessToken(TestContext context){
+
+        HttpClient client = vertx.createHttpClient();
+        Async async = context.async();
+
+        int random = getRandomNumber();
+
+        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
+            context.assertEquals(201, resp.statusCode());
+            String token = resp.getHeader("ACCESS_TOKEN");
+            context.assertNotNull(token);
+            async.complete();
+        });
+        request.headers().set("content-type", "application/json");
+
+        request.end();
+    }
+
+    private int getRandomNumber() {
+        int START = 1000;
+        int END = 9999;
+        Random r = new Random();
+        return r.nextInt((END - START) + 1) + START;
     }
 }
