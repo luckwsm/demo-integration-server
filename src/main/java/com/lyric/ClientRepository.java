@@ -34,6 +34,7 @@ public class ClientRepository {
                 .put("vendorClientAccountId", vendorClientAccountId)
                 .put("taxEinTinSsn", String.format("333-44-%d", random))
                 .put("tinType", "ssn")
+                .put("memberBusinessType", "individual")
                 .put("phone", String.format("207555%d", random))
                 .put("mobilePhone", String.format("207556%d", random))
                 .put("bankName", "Bank of America")

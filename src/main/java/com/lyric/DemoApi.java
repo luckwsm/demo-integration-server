@@ -206,6 +206,10 @@ public class DemoApi extends AbstractVerticle {
     }
 
     private boolean isServerRequest(RoutingContext routingContext){
+        String contentType = routingContext.request().getHeader("content-type");
+        if(!contentType.equals("application/json")){
+            return false;
+        }
         JsonObject body = routingContext.getBodyAsJson();
         return body.getJsonObject("options", null) != null;
     }

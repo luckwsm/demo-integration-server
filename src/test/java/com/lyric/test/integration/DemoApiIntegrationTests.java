@@ -47,7 +47,7 @@ public class DemoApiIntegrationTests {
         int random = getRandomNumber();
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
-            context.assertEquals(201, resp.statusCode());
+            context.assertEquals(200, resp.statusCode());
             String token = resp.getHeader("ACCESS_TOKEN");
             context.assertNotNull(token);
             async.complete();
@@ -65,6 +65,7 @@ public class DemoApiIntegrationTests {
                 .put("vendorClientAccountId", String.format("client%d", random))
                 .put("taxEinTinSsn", String.format("333-44-%d", random))
                 .put("tinType", "ssn")
+                .put("memberBusinessType", "individual")
                 .put("phone", String.format("207555%d", random))
                 .put("mobilePhone", String.format("207556%d", random))
                 .put("bankName", "Bank of America")
@@ -86,7 +87,7 @@ public class DemoApiIntegrationTests {
         int random = getRandomNumber();
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
-            context.assertEquals(201, resp.statusCode());
+            context.assertEquals(200, resp.statusCode());
             String token = resp.getHeader("ACCESS_TOKEN");
             context.assertNotNull(token);
             async.complete();
