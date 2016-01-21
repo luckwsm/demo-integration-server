@@ -78,7 +78,7 @@ public class DemoApiIntegrationTests {
     }
 
     @Test
-    public void testWithoutDataShouldReturnAccessToken(TestContext context){
+    public void serverJsonCallWithCsvShouldReturnAccessToken(TestContext context){
 
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
@@ -93,7 +93,11 @@ public class DemoApiIntegrationTests {
         });
         request.headers().set("content-type", "application/json");
 
-        request.end();
+        JsonObject options = new JsonObject().put("options", new JsonObject()
+                .put("contentType", "application/json")
+                .put("royaltyEarningsContentType", "text/csv")
+                .put("filename", "sample.csv"));
+        request.end(options.toString());
     }
 
     private int getRandomNumber() {

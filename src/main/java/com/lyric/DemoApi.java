@@ -17,6 +17,7 @@ import io.vertx.ext.web.handler.CorsHandler;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.EnumUtils;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Random;
@@ -61,7 +62,6 @@ public class DemoApi extends AbstractVerticle {
     }
 
     private void handleAdvanceRequest(RoutingContext routingContext){
-        logger.info("INTO HANDLE ADVANCE REQUEST");
         HttpServerRequest req = routingContext.request();
 
         String clientId = routingContext.request().getParam("id");
@@ -74,8 +74,81 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
 
+        if(isServerRequest(routingContext)){
+            handleAdvanceRequestServer(routingContext, clientId, httpClient);
+        }
+        else{
+            handleAdvanceRequestClient(routingContext, clientId, httpClient);
+        }
+    }
+
+    private void handleAdvanceRequestClient(RoutingContext routingContext, String clientId, HttpClient httpClient){
+        registerForAdvance(routingContext, routingContext.getBody(), httpClient);
+    }
+
+    private void handleAdvanceRequestServer(RoutingContext routingContext, String clientId, HttpClient httpClient){
+        JsonObject options = routingContext.getBodyAsJson().getJsonObject("options");
+
+        /* Look up client data from your system */
+        JsonObject client = ClientRepository.findClient(clientId);
+
+        Buffer body = Buffer.buffer();
+
+        if(options.getString("contentType").equals("multipart/form-data")){
+            generateMultipart(body, client, options);
+            // remove content-type header because it came through as json
+            // add multipart header  (can't do this because we don't have reference to request)
+        }
+        else{
+            byte[] csvData = new byte[0];
+
+            if(options.getString("royaltyEarningsContentType").equals("text/csv") && !options.getString("filename").equals("")){
+                try {
+                    csvData = ClientRepository.getRoyaltyEarnings(options.getString("filename"));
+                } catch (IOException e) {
+                    logger.error(String.format("Error getting csv data: %s", e.getMessage()));
+                }
+                String encodedCsvData = Base64.encodeBase64String(csvData);
+                client.put("royaltyEarnings", encodedCsvData);
+            }
+            body.appendString(client.toString());
+        }
+        registerForAdvance(routingContext, body, httpClient);
+    }
+
+    private void generateMultipart(Buffer body, JsonObject client, JsonObject options){
+        addClientToBuffer(client, body);
+        addRoyaltyEarningsToBuffer(client, body, options);
+    }
+
+    private void addClientToBuffer(JsonObject client, Buffer buffer){
+        buffer.appendString("--MyBoundary\r\n");
+        buffer.appendString("Content-Disposition: form-data; name=\"clientData\";\r\n");
+        buffer.appendString("Content-Type: text/plain\r\n");
+        buffer.appendString("\r\n");
+        buffer.appendString(client.toString());
+        buffer.appendString("\r\n");
+    }
+
+    private void addRoyaltyEarningsToBuffer(JsonObject client, Buffer body, JsonObject options) {
+        // ***JUST STUBBING OUT FOR NOW
+        //check options to get filename and royaltyEarningsContentType, use this data to construct
+        //the multipart data for royaltyEarnings
+
+//            -        buffer.appendString("--MyBoundary\r\n");
+//            -        buffer.appendString("Content-Disposition: form-data; name=\"royaltyEarnings\"; filename=\"" + fileName + "\"\r\n");
+//            -        buffer.appendString("Content-Type: \"" + options.getString("royaltyEarningsContentType") + "\"\r\n");
+//            -        buffer.appendString("\r\n");
+//            -        buffer.appendBytes(bytes data from file);
+//            -        buffer.appendString("\r\n");
+    }
+
+
+
+    private void registerForAdvance(RoutingContext routingContext, Buffer body, HttpClient httpClient){
+        HttpServerRequest req = routingContext.request();
+
         String uri = getUri(req);
-        logger.info("URI: " + uri);
         HttpClientRequest cReq = httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());
             req.response().setStatusCode(cRes.statusCode());
@@ -86,18 +159,12 @@ public class DemoApi extends AbstractVerticle {
                 req.response().write(data);
                 req.response().end();
             });
+            req.response().end();
         });
 
         setHeaders(cReq, req);
-
         cReq.setChunked(true);
 
-        /* See if there is data in the body, otherwise look up client data from your system */
-        Buffer body = routingContext.getBody();
-        if(body.length() == 0){
-            body.appendString(findClient(clientId));
-        }
-        //logger.info("BODY: " + routingContext.getBody().toString());
         cReq.write(body);
         cReq.end();
     }
@@ -134,39 +201,12 @@ public class DemoApi extends AbstractVerticle {
         cReq.putHeader(HttpHeaders.AUTHORIZATION, "Basic " + authToken);
     }
 
-    /* This gets a unique user every time for testing purposes.  This would really be a lookup from
-    your database.
-     */
-    private String findClient(String vendorClientAccountId){
-
-        int START = 1000;
-        int END = 9999;
-        Random r = new Random();
-        int random = r.nextInt((END - START) + 1) + START;
-
-        JsonObject clientInfo = new JsonObject()
-                .put("firstName", String.format("Test%d", random))
-                .put("lastName", String.format("User%d", random))
-                .put("address1", "327 S 87 St")
-                .put("email", String.format("%s@email.com", vendorClientAccountId))
-                .put("city", "Omaha")
-                .put("state", "NE")
-                .put("zipCode", "68123")
-                .put("vendorClientAccountId", vendorClientAccountId)
-                .put("taxEinTinSsn", String.format("333-44-%d", random))
-                .put("tinType", "ssn")
-                .put("phone", String.format("207555%d", random))
-                .put("mobilePhone", String.format("207556%d", random))
-                .put("bankName", "Bank of America")
-                .put("bankAccountNumber", "12345678")
-                .put("bankRoutingNumber", "211274450")
-                .put("bankAccountType", "checking")
-                .put("dob", "1967-01-01");
-
-        return clientInfo.toString();
-    }
-
     private String createCredentials(String username, String password) throws UnsupportedEncodingException {
         return Base64.encodeBase64String(String.format("%s:%s", username, password).getBytes("UTF-8"));
+    }
+
+    private boolean isServerRequest(RoutingContext routingContext){
+        JsonObject body = routingContext.getBodyAsJson();
+        return body.getJsonObject("options", null) != null;
     }
 }
