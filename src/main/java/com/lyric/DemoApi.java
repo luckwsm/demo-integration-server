@@ -3,8 +3,6 @@ package com.lyric;
 import com.google.common.collect.Sets;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.VoidHandler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
@@ -20,7 +18,6 @@ import org.apache.commons.lang3.EnumUtils;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -34,6 +31,7 @@ public class DemoApi extends AbstractVerticle {
     private static Set<HttpMethod> allHttpMethods = Sets.newConcurrentHashSet(EnumUtils.getEnumList(HttpMethod.class));
     private static Set<String> allowedCorsHeaders = Sets.newConcurrentHashSet(Arrays.asList("Accept", "Authorization", "Content-Type", "vendorId"));
     private CorsHandler corsHandler = CorsHandler.create("*").allowedMethods(allHttpMethods).allowedHeaders(allowedCorsHeaders).exposedHeader(ACCESS_TOKEN);
+    private static String BOUNDARY = "----LyricBoundaryAL0lfjW6DJtKiwkd";
 
     @Override
     public void start(Future<Void> startFuture) {
@@ -45,7 +43,8 @@ public class DemoApi extends AbstractVerticle {
 
         router.route().handler(BodyHandler.create());
 
-        router.post("/clients/:id/advance").handler(this::handleAdvanceRequest);
+        router.post("/clients/:id/advance_client").handler(this::handleAdvanceRequestClient);
+        router.post("/clients/:id/advance_server").handler(this::handleAdvanceRequestServer);
 
         final JsonObject serverOptions = new JsonObject();
 
@@ -61,7 +60,7 @@ public class DemoApi extends AbstractVerticle {
         });
     }
 
-    private void handleAdvanceRequest(RoutingContext routingContext){
+    private void handleAdvanceRequestClient(RoutingContext routingContext){
         HttpServerRequest req = routingContext.request();
 
         String clientId = routingContext.request().getParam("id");
@@ -74,19 +73,29 @@ public class DemoApi extends AbstractVerticle {
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
 
-        if(isServerRequest(routingContext)){
-            handleAdvanceRequestServer(routingContext, clientId, httpClient);
-        }
-        else{
-            handleAdvanceRequestClient(routingContext, clientId, httpClient);
-        }
+        String uri = getUri(req.getHeader("content-type"));
+        HttpClientRequest cReq = getHttpClientRequest(req, httpClient, uri);
+
+        setHeaders(cReq, req);
+        cReq.setChunked(true);
+
+        cReq.write(routingContext.getBody());
+        cReq.end();
     }
 
-    private void handleAdvanceRequestClient(RoutingContext routingContext, String clientId, HttpClient httpClient){
-        registerForAdvance(routingContext, routingContext.getBody(), httpClient);
-    }
+    private void handleAdvanceRequestServer(RoutingContext routingContext){
+        HttpServerRequest req = routingContext.request();
 
-    private void handleAdvanceRequestServer(RoutingContext routingContext, String clientId, HttpClient httpClient){
+        String clientId = routingContext.request().getParam("id");
+
+        if(clientId == null){
+            req.response().setStatusMessage("Client Id cannot be null.");
+            req.response().setStatusCode(500).end();
+            return;
+        }
+
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "api.lyricfinancial.com")).setSsl(true));
+
         JsonObject options = routingContext.getBodyAsJson().getJsonObject("options");
 
         /* Look up client data from your system */
@@ -94,15 +103,15 @@ public class DemoApi extends AbstractVerticle {
 
         Buffer body = Buffer.buffer();
 
-        if(options.getString("contentType").equals("multipart/form-data")){
+        String contentType = options.getString("contentType");
+
+        if(contentType.equals("multipart/form-data")){
+            contentType = String.format("%s;boundary=%s", contentType, BOUNDARY);
             generateMultipart(body, client, options);
-            // remove content-type header because it came through as json
-            // add multipart header  (can't do this because we don't have reference to request)
         }
         else{
-            byte[] csvData = new byte[0];
-
-            if(options.getString("royaltyEarningsContentType").equals("text/csv") && !options.getString("filename").equals("")){
+            if(shouldLoadRoyaltyEarningsCsv(options)){
+                byte[] csvData = new byte[0];
                 try {
                     csvData = ClientRepository.getRoyaltyEarnings(options.getString("filename"));
                 } catch (IOException e) {
@@ -113,66 +122,72 @@ public class DemoApi extends AbstractVerticle {
             }
             body.appendString(client.toString());
         }
-        registerForAdvance(routingContext, body, httpClient);
+
+        String uri = getUri(contentType);
+        HttpClientRequest cReq = getHttpClientRequest(req, httpClient, uri);
+
+        setHeaders(cReq, req);
+        cReq.putHeader("content-type", contentType);
+
+        cReq.setChunked(true);
+
+        cReq.end(body);
+    }
+
+    private HttpClientRequest getHttpClientRequest(HttpServerRequest req, HttpClient httpClient, String uri) {
+        return httpClient.post(uri, cRes -> {
+                logger.info("Proxying response: " + cRes.statusCode());
+                req.response().setStatusCode(cRes.statusCode());
+                req.response().headers().setAll(cRes.headers());
+                req.response().setChunked(true);
+                cRes.bodyHandler(data -> {
+                    logger.debug("Proxying response body:" + data);
+                    req.response().write(data);
+                    req.response().end();
+                });
+                req.response().end();
+            });
+    }
+
+    private boolean shouldLoadRoyaltyEarningsCsv(JsonObject options) {
+        return options.getString("royaltyEarningsContentType").equals("text/csv") && !options.getString("filename").equals("");
     }
 
     private void generateMultipart(Buffer body, JsonObject client, JsonObject options){
+        if(shouldLoadRoyaltyEarningsCsv(options)){
+            byte[] csvData = new byte[0];
+            try {
+                csvData = ClientRepository.getRoyaltyEarnings(options.getString("filename"));
+            } catch (IOException e) {
+                logger.error(String.format("Error getting csv data: %s", e.getMessage()));
+            }
+            addRoyaltyEarningsToBuffer(body, options, csvData);
+        }
         addClientToBuffer(client, body);
-        addRoyaltyEarningsToBuffer(client, body, options);
+        body.appendString("--" + BOUNDARY + "--\r\n");
     }
 
     private void addClientToBuffer(JsonObject client, Buffer buffer){
-        buffer.appendString("--MyBoundary\r\n");
-        buffer.appendString("Content-Disposition: form-data; name=\"clientData\";\r\n");
-        buffer.appendString("Content-Type: text/plain\r\n");
+        buffer.appendString("--" + BOUNDARY + "\r\n");
+        buffer.appendString("Content-Disposition: form-data; name=\"clientData\"\r\n");
         buffer.appendString("\r\n");
         buffer.appendString(client.toString());
         buffer.appendString("\r\n");
     }
 
-    private void addRoyaltyEarningsToBuffer(JsonObject client, Buffer body, JsonObject options) {
-        // ***JUST STUBBING OUT FOR NOW
-        //check options to get filename and royaltyEarningsContentType, use this data to construct
-        //the multipart data for royaltyEarnings
-
-//            -        buffer.appendString("--MyBoundary\r\n");
-//            -        buffer.appendString("Content-Disposition: form-data; name=\"royaltyEarnings\"; filename=\"" + fileName + "\"\r\n");
-//            -        buffer.appendString("Content-Type: \"" + options.getString("royaltyEarningsContentType") + "\"\r\n");
-//            -        buffer.appendString("\r\n");
-//            -        buffer.appendBytes(bytes data from file);
-//            -        buffer.appendString("\r\n");
+    private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData) {
+        buffer.appendString("--" + BOUNDARY + "\r\n");
+        buffer.appendString("Content-Disposition: form-data; name=\"royaltyEarnings\"; filename=\"" + options.getString("filename") + "\"\r\n");
+        buffer.appendString("Content-Type: " + options.getString("royaltyEarningsContentType") + "\r\n");
+        buffer.appendString("\r\n");
+        //buffer.a
+        buffer.appendBytes(royaltyEarningsData);
+        buffer.appendString("\r\n");
     }
 
-
-
-    private void registerForAdvance(RoutingContext routingContext, Buffer body, HttpClient httpClient){
-        HttpServerRequest req = routingContext.request();
-
-        String uri = getUri(req);
-        HttpClientRequest cReq = httpClient.post(uri, cRes -> {
-            logger.info("Proxying response: " + cRes.statusCode());
-            req.response().setStatusCode(cRes.statusCode());
-            req.response().headers().setAll(cRes.headers());
-            req.response().setChunked(true);
-            cRes.bodyHandler(data -> {
-                logger.debug("Proxying response body:" + data);
-                req.response().write(data);
-                req.response().end();
-            });
-            req.response().end();
-        });
-
-        setHeaders(cReq, req);
-        cReq.setChunked(true);
-
-        cReq.write(body);
-        cReq.end();
-    }
-
-    private String getUri(HttpServerRequest req) {
+    private String getUri(String contentType) {
         String uri = "/vendorAPI/v1/json/clients";
 
-        String contentType = req.getHeader("content-type");
         if(contentType.substring(0, 9).equals("multipart")){
             uri = "/vendorAPI/v1/multipart/clients";
         }
@@ -187,6 +202,10 @@ public class DemoApi extends AbstractVerticle {
         req.headers().remove(HttpHeaders.HOST);
         cReq.headers().setAll(req.headers());
 
+        setAuthorizationHeaders(cReq);
+    }
+
+    private void setAuthorizationHeaders(HttpClientRequest cReq) {
         cReq.putHeader("vendorId", "ascap");
 
         /* Username and password are used to generate the authorization header.  These values need to
@@ -203,14 +222,5 @@ public class DemoApi extends AbstractVerticle {
 
     private String createCredentials(String username, String password) throws UnsupportedEncodingException {
         return Base64.encodeBase64String(String.format("%s:%s", username, password).getBytes("UTF-8"));
-    }
-
-    private boolean isServerRequest(RoutingContext routingContext){
-        String contentType = routingContext.request().getHeader("content-type");
-        if(!contentType.equals("application/json")){
-            return false;
-        }
-        JsonObject body = routingContext.getBodyAsJson();
-        return body.getJsonObject("options", null) != null;
     }
 }

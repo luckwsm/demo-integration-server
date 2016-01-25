@@ -46,7 +46,7 @@ public class DemoApiIntegrationTests {
 
         int random = getRandomNumber();
 
-        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
+        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_client", resp -> {
             context.assertEquals(200, resp.statusCode());
             String token = resp.getHeader("ACCESS_TOKEN");
             context.assertNotNull(token);
@@ -86,7 +86,7 @@ public class DemoApiIntegrationTests {
 
         int random = getRandomNumber();
 
-        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
+        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_server", resp -> {
             context.assertEquals(200, resp.statusCode());
             String token = resp.getHeader("ACCESS_TOKEN");
             context.assertNotNull(token);
@@ -96,6 +96,29 @@ public class DemoApiIntegrationTests {
 
         JsonObject options = new JsonObject().put("options", new JsonObject()
                 .put("contentType", "application/json")
+                .put("royaltyEarningsContentType", "text/csv")
+                .put("filename", "sample.csv"));
+        request.end(options.toString());
+    }
+
+    @Test
+    public void serverMultipartCallWithCsvShouldReturnAccessToken(TestContext context){
+
+        HttpClient client = vertx.createHttpClient();
+        Async async = context.async();
+
+        int random = getRandomNumber();
+
+        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_server", resp -> {
+            context.assertEquals(200, resp.statusCode());
+            String token = resp.getHeader("ACCESS_TOKEN");
+            context.assertNotNull(token);
+            async.complete();
+        });
+        request.headers().set("content-type", "application/json");
+
+        JsonObject options = new JsonObject().put("options", new JsonObject()
+                .put("contentType", "multipart/form-data")
                 .put("royaltyEarningsContentType", "text/csv")
                 .put("filename", "sample.csv"));
         request.end(options.toString());
