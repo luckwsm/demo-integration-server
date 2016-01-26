@@ -1,12 +1,21 @@
 # Demo Integration Server
 
 This project is a vertx 3 web server that mimics a vendor's server.  It is set up to be flexible to
-demonstrate the various scenarios that a vendor might use for implementation.  The main 2 use cases
+demonstrate the various scenarios that a vendor might use to integrate with the Lyric APIs.  The main 2 use cases
 are highlighted in the [Client Demo](http://lyricfinancial.github.io/integration-guides/#/demo) and
 [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo).  View the documentation for
 the Demos [here](https://github.com/LyricFinancial/integration-guides/tree/master/examples/client/angular/lyric-vendor-demo).
 Use the [API Documentation](https://api.lyricfinancial.com/docs/vendor-api/) to see how to properly
 use the Lyric registration API.
+
+### Environment Variables
+The vendorId, username and password are used for both the client and server demo.  These values are
+stored as environment variables.  These values can be overridden in both demos by setting the values
+in the Advanced Options section.
+
+    DEFAULT_VENDOR_ID
+    DEFAULT_USERNAME
+    DEFAULT_PASSWORD
 
 ## Client Demo
 This scenario mimics receiving the user data from the client ui and passing it straight through
@@ -16,11 +25,11 @@ The endpoint is **/clients/:clientId/advance_client**.
 
 ## Server Demo
 This scenario mimics taking the id from the url and using that to look the user up in the system.  This
-demo creates a new unique user to pass to the API.  To trigger this flow, an options json object must
-be sent as the body of the request.  The options tell the server how the data should be sent to the
+demo creates a new unique user to pass to the API.  To trigger this flow, **an options json object must
+be sent as the body of the request**.  The options tell the server how the data should be sent to the
 Lyric registration API and how the Royalty Earnings should be retrieved and sent.  These options are
 strictly for demo and testing purposes so that all of the different scenarios can be explored.  The
-options json would look like:
+options json should look like:
 
     "options": {
         "contentType":"application/json"
@@ -28,7 +37,8 @@ options json would look like:
         "filename": "sample.csv"
     }
 
-The endpoint is **/clients/:clientId/advance_server**.
+The endpoint is **/clients/:clientId/advance_server**.  There needs to be a file on the server with the
+specified filename.  Right now the only file is sample.csv.
 
 ## Try It
 
@@ -37,6 +47,7 @@ The endpoint is **/clients/:clientId/advance_server**.
     https://lyric-demo-server.herokuapp.com/clients/:clientId/advance_server.
 
 This project can be forked and used to make modifications.  You can then deploy it to your own heroku
-instance.
+instance.  Make sure to set the vendorId, username and password environment variables in heroku once
+it is deployed.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)

@@ -14,6 +14,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -61,9 +62,10 @@ public class DemoApi extends AbstractVerticle {
     }
 
     private void handleAdvanceRequestClient(RoutingContext routingContext){
+        logger.info("INTO HANDLE ADVANCE REQUEST CLIENT");
         HttpServerRequest req = routingContext.request();
 
-        String clientId = routingContext.request().getParam("id");
+        String clientId = getParam(req, "id", null);
 
         if(clientId == null){
             req.response().setStatusMessage("Client Id cannot be null.");
@@ -86,7 +88,7 @@ public class DemoApi extends AbstractVerticle {
     private void handleAdvanceRequestServer(RoutingContext routingContext){
         HttpServerRequest req = routingContext.request();
 
-        String clientId = routingContext.request().getParam("id");
+        String clientId = getParam(req, "id", null);
 
         if(clientId == null){
             req.response().setStatusMessage("Client Id cannot be null.");
@@ -110,16 +112,16 @@ public class DemoApi extends AbstractVerticle {
             generateMultipart(body, client, options);
         }
         else{
-            if(shouldLoadRoyaltyEarningsCsv(options)){
-                byte[] csvData = new byte[0];
-                try {
-                    csvData = ClientRepository.getRoyaltyEarnings(options.getString("filename"));
-                } catch (IOException e) {
-                    logger.error(String.format("Error getting csv data: %s", e.getMessage()));
-                }
-                String encodedCsvData = Base64.encodeBase64String(csvData);
-                client.put("royaltyEarnings", encodedCsvData);
-            }
+//            if(shouldLoadRoyaltyEarningsCsv(options)){
+//                byte[] csvData = new byte[0];
+//                try {
+//                    csvData = ClientRepository.getRoyaltyEarnings(options.getString("filename"));
+//                } catch (IOException e) {
+//                    logger.error(String.format("Error getting csv data: %s", e.getMessage()));
+//                }
+//                String encodedCsvData = Base64.encodeBase64String(csvData);
+//                client.put("royaltyEarnings", encodedCsvData);
+//            }
             body.appendString(client.toString());
         }
 
@@ -186,10 +188,10 @@ public class DemoApi extends AbstractVerticle {
     }
 
     private String getUri(String contentType) {
-        String uri = "/vendorAPI/v1/json/clients";
+        String uri = "/vendorAPI/v1/clients.json";
 
         if(contentType.substring(0, 9).equals("multipart")){
-            uri = "/vendorAPI/v1/multipart/clients";
+            uri = "/vendorAPI/v1/clients.form";
         }
         return uri;
     }
@@ -202,18 +204,23 @@ public class DemoApi extends AbstractVerticle {
         req.headers().remove(HttpHeaders.HOST);
         cReq.headers().setAll(req.headers());
 
-        setAuthorizationHeaders(cReq);
+        setAuthorizationHeaders(cReq, req);
     }
 
-    private void setAuthorizationHeaders(HttpClientRequest cReq) {
-        cReq.putHeader("vendorId", "ascap");
+    private void setAuthorizationHeaders(HttpClientRequest cReq, HttpServerRequest req) {
+        String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
+        logger.info("********VENDOR ID: " + vendorId);
+        cReq.putHeader("vendorId", vendorId);
 
         /* Username and password are used to generate the authorization header.  These values need to
         be base64 encoded to create the new authorization token.
          */
         String authToken = null;
         try {
-            authToken = this.createCredentials("ascap", "WxjXgrzzGzrkPMv7hBFJ@PMkQX9e3e2N");
+            String username = getParam(req, "username", System.getenv("DEFAULT_USERNAME"));
+            logger.info("**********USERNAME: " + username);
+            String password = getParam(req, "password", System.getenv("DEFAULT_PASSWORD"));
+            authToken = this.createCredentials(username, password);
         } catch (UnsupportedEncodingException e) {
             logger.error("Could not create client credentials", e.getCause());
         }
@@ -222,5 +229,13 @@ public class DemoApi extends AbstractVerticle {
 
     private String createCredentials(String username, String password) throws UnsupportedEncodingException {
         return Base64.encodeBase64String(String.format("%s:%s", username, password).getBytes("UTF-8"));
+    }
+
+    private String getParam(HttpServerRequest request, String paramName, String defaultValue) {
+        String param = request.getParam(paramName);
+        if (StringUtils.isBlank(param)) {
+            return defaultValue;
+        }
+        return param;
     }
 }

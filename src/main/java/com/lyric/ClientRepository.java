@@ -23,25 +23,44 @@ public class ClientRepository {
         Random r = new Random();
         int random = r.nextInt((END - START) + 1) + START;
 
-        return new JsonObject()
+        JsonObject user = new JsonObject()
                 .put("firstName", String.format("Test%d", random))
                 .put("lastName", String.format("User%d", random))
                 .put("address1", "327 S 87 St")
-                .put("email", String.format("%s@email.com", vendorClientAccountId))
+                .put("email", String.format("%s@email.com", random))
                 .put("city", "Omaha")
                 .put("state", "NE")
                 .put("zipCode", "68123")
-                .put("vendorClientAccountId", vendorClientAccountId)
-                .put("taxEinTinSsn", String.format("333-44-%d", random))
-                .put("tinType", "ssn")
-                .put("memberBusinessType", "individual")
-                .put("phone", String.format("207555%d", random))
-                .put("mobilePhone", String.format("207556%d", random))
+                .put("phone", String.format("207-555-%d", random))
+                .put("mobilePhone", String.format("207-556-%d", random))
+                .put("dob", "1967-01-01")
+                .put("gender", "male")
+                .put("maritalStatus", "single")
+                ;
+
+        JsonObject bankInfo = new JsonObject()
                 .put("bankName", "Bank of America")
                 .put("bankAccountNumber", "12345678")
                 .put("bankRoutingNumber", "211274450")
                 .put("bankAccountType", "checking")
-                .put("dob", "1967-01-01");
+                ;
+
+        JsonObject taxInfo = new JsonObject()
+                .put("taxEinTinSsn", String.format("333-44-%d", random))
+                .put("tinType", "ssn")
+                .put("memberBusinessType", "individual")
+                ;
+
+        JsonObject vendorAccount = new JsonObject()
+                .put("vendorClientAccountId", String.format("client%d", random))
+                ;
+
+        return new JsonObject()
+                .put("user", user)
+                .put("vendorAccount", vendorAccount)
+                .put("taxInfo", taxInfo)
+                .put("bankInfo", bankInfo)
+                ;
     }
 
     public static byte[] getRoyaltyEarnings(String filename) throws IOException {
