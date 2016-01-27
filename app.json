@@ -2,5 +2,21 @@
   "name": "Lyric Demo Integration Server",
   "description": "A barebones server that demonstrates calling the Lyric API to register clients in the Lyric system.",
   "repository": "https://github.com/LyricFinancial/demo-integration-server",
-  "keywords": ["lyric", "server", "demo"]
+  "website": "https://github.com/LyricFinancial/integration-guides",
+  "keywords": ["lyric", "server", "demo"],
+  "success_url": "https://github.com/LyricFinancial/demo-integration-server/Welcome.md",
+  "env": {
+    "DEFAULT_VENDOR_ID": {
+      "description": "Your vendorId provided by Lyric",
+      "value": "demo"
+    },
+    "DEFAULT_USERNAME": {
+      "description": "Username for API authentication provided by lyric",
+      "value": "demo"
+    },
+    "DEFAULT_PASSWORD": {
+      "description": "Password for API authentication provided by lyric",
+      "value": "WxjXgrzzGzrkPMv7hBFJ@PMkQX9e3e2N" 
+    }
+  }  
 }

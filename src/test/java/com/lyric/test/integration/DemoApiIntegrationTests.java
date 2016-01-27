@@ -13,12 +13,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.junit.Ignore;
 import java.util.Random;
 
 /**
  * Created by amadden on 1/12/16.
  */
+@Ignore
 @RunWith(VertxUnitRunner.class)
 public class DemoApiIntegrationTests {
     Vertx vertx;

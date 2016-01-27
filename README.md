@@ -16,14 +16,6 @@ Documentation for both of the demo applications can be found [here](https://gith
 Use the [API Documentation](https://api.lyricfinancial.com/docs/vendor-api/) to see how to properly
 use the Lyric registration API.
 
-### Environment Variables
-The vendorId, username and password are used for both the client and server demo.  These values are
-stored as environment variables.  These values can be overridden in both demos by setting the values
-in the Advanced Options section.
-
-    DEFAULT_VENDOR_ID
-    DEFAULT_USERNAME
-    DEFAULT_PASSWORD
 
 ## Server Demo API
 This API demonstrates how to use the Lyric API. The endpoint is **/clients/:clientId/advance_server**. 
@@ -38,6 +30,11 @@ documentation on this demo api, see [here](ServerDemoReadme.md).
 
 ## Try It
 
+You are free to experiment with the Lyric Demo server, [deployed here](https://lyric-demo-server.herokuapp.com).
+In fact, the Demo Apps are preconfigured to work with this server. They also allow you to change vendorID and API 
+credentials under Advance Settings. However, if want to experiment with your own server, you can use this Heroku button
+to deploy your own instance.
+
     The Demo Integration Server is deployed at https://lyric-demo-server.herokuapp.com and the url to
     request an advance is https://lyric-demo-server.herokuapp.com/clients/:clientId/advance_client and
     https://lyric-demo-server.herokuapp.com/clients/:clientId/advance_server.
@@ -47,3 +44,11 @@ instance.  Make sure to set the vendorId, username and password environment vari
 it is deployed.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+### Next Steps
+
+[Configure a new Demo Integration Server](Welcome.md) to work with the demo apps.
+
+
+
+Return to [Integration Guides](https://github.com/LyricFinancial/integration-guides#4-save-the-membertoken-that-gets-returned)

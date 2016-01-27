@@ -46,9 +46,9 @@ dependencies {
 
 test {
     environment 'PORT', '8080'
-    environment 'DEFAULT_VENDOR_ID', 'ascap'
-    environment 'DEFAULT_USERNAME', 'ascap'
-    environment 'DEFAULT_PASSWORD', 'WxjXgrzzGzrkPMv7hBFJ@PMkQX9e3e2N'
+    environment 'DEFAULT_VENDOR_ID', 'demo'
+    environment 'DEFAULT_USERNAME', 'demo'
+    environment 'DEFAULT_PASSWORD', 'demo'
 }
 
 shadowJar {
