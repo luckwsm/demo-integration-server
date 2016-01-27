@@ -15,6 +15,8 @@ in the Advanced Options section.
 
 ### API URL
 
+Launch the [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo-server).
+
 Find your new Heroku app URL and update this advance setting and the demo apps will start working with your new demo server.
 
 ![Advance Settings](images/advance_settings.png)

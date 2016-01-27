@@ -3,7 +3,7 @@
 This project is a vertx 3 web server that mimics a vendor's server.  It is set up to be flexible to
 demonstrate the various scenarios that a vendor might use to integrate with the Lyric APIs. The primary integration
 method is shown in the [Server Demo API](#server-demo-api). The Lyric API uses basic authentication and vendor API credentials
-should never be exposed to client devices. To experiment with this demo now, you can access the [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo)
+should never be exposed to client devices. To experiment with this demo now, you can access the [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo-server)
 application. This application demonstrates the full primary integration method with Lyric's APIs. 
 However, it is limited as the server uses randomized datasets.
 
@@ -19,7 +19,7 @@ use the Lyric registration API.
 
 ## Server Demo API
 This API demonstrates how to use the Lyric API. The endpoint is **/clients/:clientId/advance_server**. 
-It is invoked from the [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo) application
+It is invoked from the [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo-server) application
 when pressing "Get Advance". The example code [here](https://github.com/LyricFinancial/demo-integration-server/blob/master/src/main/java/com/lyric/DemoApi.java)
 under the handleAdvanceRequestServer function shows how to POST registrations to the Lyric API. 
 Currently earnings data can only be posted using multipart/form-data. Eventually we will also have ways
