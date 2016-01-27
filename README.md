@@ -1,10 +1,18 @@
 # Demo Integration Server
 
 This project is a vertx 3 web server that mimics a vendor's server.  It is set up to be flexible to
-demonstrate the various scenarios that a vendor might use to integrate with the Lyric APIs.  The main 2 use cases
-are highlighted in the [Client Demo](http://lyricfinancial.github.io/integration-guides/#/demo) and
-[Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo).  View the documentation for
-the Demos [here](https://github.com/LyricFinancial/integration-guides/tree/master/examples/client/angular/lyric-vendor-demo).
+demonstrate the various scenarios that a vendor might use to integrate with the Lyric APIs. The primary integration
+method is shown in the [Server Demo API](#server-demo-api). The Lyric API uses basic authentication and vendor API credentials
+should never be exposed to client devices. To experiment with this demo now, you can access the [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo)
+application. This application demonstrates the full primary integration method with Lyric's APIs. 
+However, it is limited as the server uses randomized datasets.
+
+We also created a [Client Demo API](#client-demo-api) to support a [demo app](http://lyricfinancial.github.io/integration-guides/#/demo)
+that is less limited. This app is good for experimenting with the vATM "flow", but is not representative
+of "real world" integrations.
+
+Documentation for both of the demo applications can be found [here](https://github.com/LyricFinancial/integration-guides/tree/master/examples/client/angular/lyric-vendor-demo).
+
 Use the [API Documentation](https://api.lyricfinancial.com/docs/vendor-api/) to see how to properly
 use the Lyric registration API.
 
@@ -17,28 +25,16 @@ in the Advanced Options section.
     DEFAULT_USERNAME
     DEFAULT_PASSWORD
 
-## Client Demo
-This scenario mimics receiving the user data from the client ui and passing it straight through
-to the Lyric registration API.  All the data and headers are copied onto the new request and then
-the response is just proxied back to the client.  The data can be sent as json or multipart form data.
-The endpoint is **/clients/:clientId/advance_client**.
+## Server Demo API
+This API demonstrates how to use the Lyric API. The endpoint is **/clients/:clientId/advance_server**. 
+It is invoked from the [Server Demo](http://lyricfinancial.github.io/integration-guides/#/demo) application
+when pressing "Get Advance". The example code [here](https://github.com/LyricFinancial/demo-integration-server/blob/master/src/main/java/com/lyric/DemoApi.java)
+under the handleAdvanceRequestServer function shows how to POST registrations to the Lyric API. 
+Currently earnings data can only be posted using multipart/form-data. Eventually we will also have ways
+to embed this in a standard JSON call. However, multipart/form-data will be preferred as it will allow 
+for smaller payloads. You can toggle between JSON and Mutlipart Form when using the demo app. For further
+documentation on this demo api, see [here](ServerDemoReadme.md). 
 
-## Server Demo
-This scenario mimics taking the id from the url and using that to look the user up in the system.  This
-demo creates a new unique user to pass to the API.  To trigger this flow, **an options json object must
-be sent as the body of the request**.  The options tell the server how the data should be sent to the
-Lyric registration API and how the Royalty Earnings should be retrieved and sent.  These options are
-strictly for demo and testing purposes so that all of the different scenarios can be explored.  The
-options json should look like:
-
-    "options": {
-        "contentType":"application/json"
-        "royaltyEarningsContentType": "text/csv",
-        "filename": "sample.csv"
-    }
-
-The endpoint is **/clients/:clientId/advance_server**.  There needs to be a file on the server with the
-specified filename.  Right now the only file is sample.csv.
 
 ## Try It
 
