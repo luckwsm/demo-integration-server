@@ -16,7 +16,7 @@
     },
     "DEFAULT_PASSWORD": {
       "description": "Password for API authentication provided by lyric",
-      "value": "WxjXgrzzGzrkPMv7hBFJ@PMkQX9e3e2N" 
+      "value": "demo" 
     }
   }  
 }
