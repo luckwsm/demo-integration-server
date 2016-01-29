@@ -48,7 +48,7 @@ public class DemoApiIntegrationTests {
         int random = getRandomNumber();
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_client", resp -> {
-            context.assertEquals(200, resp.statusCode());
+            context.assertEquals(201, resp.statusCode());
             String token = resp.getHeader("ACCESS_TOKEN");
             context.assertNotNull(token);
             async.complete();
@@ -106,7 +106,7 @@ public class DemoApiIntegrationTests {
         int random = getRandomNumber();
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_server", resp -> {
-            context.assertEquals(200, resp.statusCode());
+            context.assertEquals(201, resp.statusCode());
             String token = resp.getHeader("ACCESS_TOKEN");
             context.assertNotNull(token);
             async.complete();
@@ -129,7 +129,7 @@ public class DemoApiIntegrationTests {
         int random = getRandomNumber();
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_server", resp -> {
-            context.assertEquals(200, resp.statusCode());
+            context.assertEquals(201, resp.statusCode());
             String token = resp.getHeader("ACCESS_TOKEN");
             context.assertNotNull(token);
             async.complete();

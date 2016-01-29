@@ -2,7 +2,7 @@ dev:
   ports:
      - "8082:8080"
   environment:
-      DEFAULT_VENDOR_ID: ascap
-      DEFAULT_USERNAME: ascap
-      DEFAULT_PASSWORD: WxjXgrzzGzrkPMv7hBFJ@PMkQX9e3e2N
+      DEFAULT_VENDOR_ID: demo
+      DEFAULT_USERNAME: demo
+      DEFAULT_PASSWORD: demo
   build: .
