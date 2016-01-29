@@ -1,7 +1,6 @@
 package com.lyric;
 
 import com.google.common.collect.Sets;
-import com.lyric.controllers.AssignmentsController;
 import com.lyric.controllers.ClientDemoController;
 import com.lyric.controllers.ServerDemoController;
 import io.vertx.core.AbstractVerticle;
