@@ -4,5 +4,5 @@ dev:
   environment:
       DEFAULT_VENDOR_ID: demo
       DEFAULT_USERNAME: demo
-      DEFAULT_PASSWORD: demo
+      DEFAULT_PASSWORD: zVHdwN7XCGGGb]DZUzig4rVAv4EELb8j
   build: .

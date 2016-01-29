@@ -48,7 +48,7 @@ test {
     environment 'PORT', '8080'
     environment 'DEFAULT_VENDOR_ID', 'demo'
     environment 'DEFAULT_USERNAME', 'demo'
-    environment 'DEFAULT_PASSWORD', 'demo'
+    environment 'DEFAULT_PASSWORD', 'zVHdwN7XCGGGb]DZUzig4rVAv4EELb8j'
 }
 
 shadowJar {
@@ -57,7 +57,7 @@ shadowJar {
     classifier = 'fat'
     manifest {
         attributes 'Main-Class': 'io.vertx.core.Starter'
-        attributes 'Main-Verticle': 'com.lyric.DemoApi'
+        attributes 'Main-Verticle': 'com.lyric.ApiServer'
     }
     mergeServiceFiles {
         include 'META-INF/services/io.vertx.core.spi.VerticleFactory'

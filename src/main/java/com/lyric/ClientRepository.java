@@ -52,7 +52,7 @@ public class ClientRepository {
                 ;
 
         JsonObject vendorAccount = new JsonObject()
-                .put("vendorClientAccountId", String.format("client%d", random))
+                .put("vendorClientAccountId", String.format(vendorClientAccountId))
                 ;
 
         return new JsonObject()
