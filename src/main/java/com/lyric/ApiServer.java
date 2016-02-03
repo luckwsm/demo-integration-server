@@ -1,6 +1,7 @@
 package com.lyric;
 
 import com.google.common.collect.Sets;
+import com.lyric.controllers.AssignmentsController;
 import com.lyric.controllers.ClientDemoController;
 import com.lyric.controllers.ServerDemoController;
 import io.vertx.core.AbstractVerticle;
@@ -13,6 +14,9 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import org.apache.commons.lang3.EnumUtils;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.RsaJsonWebKey;
+import org.jose4j.lang.JoseException;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -29,7 +33,7 @@ public class ApiServer extends AbstractVerticle {
     private CorsHandler corsHandler = CorsHandler.create("*").allowedMethods(allHttpMethods).allowedHeaders(allowedCorsHeaders).exposedHeader(ACCESS_TOKEN);
 
     @Override
-    public void start(Future<Void> startFuture) {
+    public void start(Future<Void> startFuture) throws JoseException {
 
         io.vertx.ext.web.Router router = io.vertx.ext.web.Router.router(vertx);
 
@@ -38,11 +42,21 @@ public class ApiServer extends AbstractVerticle {
 
         router.route().handler(BodyHandler.create());
 
+        final JsonObject lyricJsonKey = config().getJsonObject("lyric").getJsonObject("key");
+        final RsaJsonWebKey lyricRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(lyricJsonKey.toString());
+
+        final JsonObject localJsonKey = config().getJsonObject("local").getJsonObject("key");
+        final RsaJsonWebKey localRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(localJsonKey.toString());
+
         final ClientDemoController clientDemoController = new ClientDemoController(vertx);
         final ServerDemoController serverDemoController = new ServerDemoController(vertx);
+        final AssignmentsController assignmentsController = new AssignmentsController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);
+
+
+        router.post("/clients/:id/assignments").handler(assignmentsController::create);
 
         final JsonObject serverOptions = new JsonObject();
 

@@ -26,6 +26,16 @@ Eventually we will also have ways to embed this in a standard JSON call. However
 as it will allow for smaller payloads. You can toggle between JSON and Mutlipart Form when using the demo app. For further
 documentation on this demo api, see [here](ServerDemoReadme.md). 
 
+## Assignment API
+This API demonstrates the how vendors will need to implement assignments.  Once an advance has been made in the Lyric
+system, Lyric will make an API call to the vendor so that payments will be assigned to Lyric until the advance plus
+processing fee has been paid back.  The body of the request will be signed with Lyrics private key (using
+[JsonWebSignature](https://bitbucket.org/b_c/jose4j/wiki/JWS%20Examples)) and then encrypted (using
+[JsonWebEncryption](https://bitbucket.org/b_c/jose4j/wiki/JWE%20Examples)) with the vendor's public key.
+The vendor will be responsible to decrypting the body with their private key and then verifying the signature with Lyric's
+public key.  The vendor will then be responsible to handling the assignment, then sending back a signed/encrypted response
+to Lyric.  Lyric's receipt of this response will be logged and used as a proof that the vendor received and acknowledged
+the assignment request.
 
 ## Try It
 

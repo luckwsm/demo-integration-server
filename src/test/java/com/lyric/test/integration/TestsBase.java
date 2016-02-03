@@ -1,6 +1,7 @@
 package com.lyric.test.integration;
 
 import com.lyric.ApiServer;
+import com.lyric.Start;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.TestContext;
@@ -23,7 +24,7 @@ public class TestsBase {
         vertx = Vertx.vertx();
 
         DeploymentOptions options = new DeploymentOptions();
-        vertx.deployVerticle(ApiServer.class.getName(), options, context.asyncAssertSuccess(resp -> {
+        vertx.deployVerticle(Start.class.getName(), options, context.asyncAssertSuccess(resp -> {
             System.out.println("SUCCESS");
         }));
     }
