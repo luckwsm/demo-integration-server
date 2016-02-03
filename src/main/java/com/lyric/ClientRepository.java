@@ -16,7 +16,7 @@ public class ClientRepository {
     /* This gets a unique user every time for testing purposes.  This would really be a lookup from
     your database.
      */
-    public static JsonObject findClient(String vendorClientAccountId){
+    public static JsonObject findClient(String vendorClientAccountId, Boolean memberTokenExists){
 
         int START = 1000;
         int END = 9999;
@@ -54,6 +54,10 @@ public class ClientRepository {
         JsonObject vendorAccount = new JsonObject()
                 .put("vendorClientAccountId", String.format(vendorClientAccountId))
                 ;
+
+        if(memberTokenExists){
+            vendorAccount.put("memberToken", String.format("member%d", random));
+        }
 
         return new JsonObject()
                 .put("user", user)

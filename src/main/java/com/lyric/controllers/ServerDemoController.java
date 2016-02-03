@@ -40,7 +40,7 @@ public class ServerDemoController extends DemoBaseController {
         JsonObject options = routingContext.getBodyAsJson().getJsonObject("options");
 
         /* Look up client data from your system */
-        JsonObject client = ClientRepository.findClient(clientId);
+        JsonObject client = ClientRepository.findClient(clientId, false);
 
         Buffer body = Buffer.buffer();
 

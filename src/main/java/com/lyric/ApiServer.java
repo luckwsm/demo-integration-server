@@ -1,6 +1,7 @@
 package com.lyric;
 
 import com.google.common.collect.Sets;
+import com.lyric.controllers.AdvanceStatusController;
 import com.lyric.controllers.AssignmentsController;
 import com.lyric.controllers.ClientDemoController;
 import com.lyric.controllers.ServerDemoController;
@@ -30,7 +31,7 @@ public class ApiServer extends AbstractVerticle {
     Logger logger = LoggerFactory.getLogger(ApiServer.class.getName());
     private static Set<HttpMethod> allHttpMethods = Sets.newConcurrentHashSet(EnumUtils.getEnumList(HttpMethod.class));
     private static Set<String> allowedCorsHeaders = Sets.newConcurrentHashSet(Arrays.asList("Accept", "Authorization", "Content-Type", "vendorId"));
-    private CorsHandler corsHandler = CorsHandler.create("*").allowedMethods(allHttpMethods).allowedHeaders(allowedCorsHeaders).exposedHeader(ACCESS_TOKEN);
+    private CorsHandler corsHandler = CorsHandler.create("*").allowedMethods(allHttpMethods).allowedHeaders(allowedCorsHeaders).exposedHeader(ACCESS_TOKEN).exposedHeader("TOKEN");
 
     @Override
     public void start(Future<Void> startFuture) throws JoseException {
@@ -51,10 +52,13 @@ public class ApiServer extends AbstractVerticle {
         final ClientDemoController clientDemoController = new ClientDemoController(vertx);
         final ServerDemoController serverDemoController = new ServerDemoController(vertx);
         final AssignmentsController assignmentsController = new AssignmentsController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
+        final AdvanceStatusController advanceStatusController = new AdvanceStatusController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);
 
+        router.get("/clients/:id/advanceStatus").handler(advanceStatusController::getAdvanceStatus);
+        router.get("/clients/:id/advanceToken").handler(advanceStatusController::getAdvanceToken);
 
         router.post("/clients/:id/assignments").handler(assignmentsController::create);
 
