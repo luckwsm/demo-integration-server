@@ -58,8 +58,9 @@ public class AssignmentsController {
 
             JsonObject responseObject = new JsonObject().put("test", "test");
 
-            String compactSerialization = encryptPayload(responseObject, lyricRsaJsonWebKey.getRsaPublicKey());
-            JsonWebSignature responseJws = signPayload(vendorRsaJsonWebKey.getRsaPrivateKey(), vendorRsaJsonWebKey.getKeyId(), compactSerialization);
+            JsonWebSignature responseJws = signPayload(vendorRsaJsonWebKey.getRsaPrivateKey(), vendorRsaJsonWebKey.getKeyId(), responseObject.toString());
+            String compactSerialization = encryptPayload(responseJws.getCompactSerialization(), lyricRsaJsonWebKey.getRsaPublicKey());
+
 
             response.end(responseJws.getCompactSerialization());
         } catch (JoseException e) {
@@ -113,12 +114,12 @@ public class AssignmentsController {
         return jws;
     }
 
-    private String encryptPayload(JsonObject assignment, RSAPublicKey lyricPublicKey) throws JoseException {
+    private String encryptPayload(String signedAssignment, RSAPublicKey lyricPublicKey) throws JoseException {
         // Create a new Json Web Encryption object
         JsonWebEncryption senderJwe = new JsonWebEncryption();
 
         // The plaintext of the JWE is the message that we want to encrypt.
-        senderJwe.setPlaintext(assignment.toString());
+        senderJwe.setPlaintext(signedAssignment);
 
         // Set the "alg" header, which indicates the key management mode for this JWE.
         senderJwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA1_5);

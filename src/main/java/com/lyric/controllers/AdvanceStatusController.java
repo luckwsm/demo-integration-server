@@ -15,9 +15,6 @@ import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.lang.JoseException;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Created by amadden on 2/3/16.
  */

@@ -39,7 +39,7 @@ public class ClientDemoTests extends TestsBase{
         });
         request.headers().set("content-type", "application/json");
 
-        JsonObject clientInfo = ClientRepository.findClient(String.format("client%d", random));
+        JsonObject clientInfo = ClientRepository.findClient(String.format("client%d", random), false);
 
         request.end(clientInfo.toString());
     }
