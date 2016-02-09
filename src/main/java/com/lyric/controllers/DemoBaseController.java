@@ -17,7 +17,8 @@ public class DemoBaseController {
     Logger logger = LoggerFactory.getLogger(DemoBaseController.class.getName());
 
     protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx) {
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", "demoservices.lyricfinancial.com")).setSsl(true));
+        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demoservices.lyricfinancial.com";
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host)).setSsl(true));
 
         return httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());

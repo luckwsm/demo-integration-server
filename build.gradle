@@ -51,6 +51,7 @@ test {
     environment 'DEFAULT_VENDOR_ID', 'demo'
     environment 'DEFAULT_USERNAME', 'demo'
     environment 'DEFAULT_PASSWORD', 'zVHdwN7XCGGGb]DZUzig4rVAv4EELb8j'
+    environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'demoservices.lyricfinancial.com'
 }
 
 shadowJar {

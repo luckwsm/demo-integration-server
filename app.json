@@ -17,6 +17,10 @@
     "DEFAULT_PASSWORD": {
       "description": "Password for API authentication provided by lyric",
       "value": "demo" 
+    },
+    "DEFAULT_INTEGRATION_SERVICES_HOST": {
+      "description": "Vendor API Host",
+      "value": "demoservices.lyricfinancial.com"
     }
   }  
 }
