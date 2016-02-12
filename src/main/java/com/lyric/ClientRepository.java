@@ -56,7 +56,8 @@ public class ClientRepository {
                 ;
 
         if(memberTokenExists){
-            vendorAccount.put("memberToken", String.format("member%d", random));
+            //vendorAccount.put("memberToken", String.format("member%d", random));
+            vendorAccount.put("memberToken", "1e4bc0a6-043e-4c3e-b067-d5949f310112");
         }
 
         return new JsonObject()

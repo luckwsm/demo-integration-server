@@ -1,7 +1,7 @@
 package com.lyric;
 
 import com.google.common.collect.Sets;
-import com.lyric.controllers.AdvanceStatusController;
+import com.lyric.controllers.TokenController;
 import com.lyric.controllers.AssignmentsController;
 import com.lyric.controllers.ClientDemoController;
 import com.lyric.controllers.ServerDemoController;
@@ -52,13 +52,12 @@ public class ApiServer extends AbstractVerticle {
         final ClientDemoController clientDemoController = new ClientDemoController(vertx);
         final ServerDemoController serverDemoController = new ServerDemoController(vertx);
         final AssignmentsController assignmentsController = new AssignmentsController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
-        final AdvanceStatusController advanceStatusController = new AdvanceStatusController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
+        final TokenController tokenController = new TokenController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);
 
-        router.get("/clients/:id/advanceStatus").handler(advanceStatusController::getAdvanceStatus);
-        router.get("/clients/:id/advanceToken").handler(advanceStatusController::getAdvanceToken);
+        router.get("/token").handler(tokenController::getToken);
 
         router.post("/clients/:id/assignments").handler(assignmentsController::create);
 
