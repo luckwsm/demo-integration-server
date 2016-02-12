@@ -5,6 +5,8 @@ import com.lyric.controllers.TokenController;
 import com.lyric.controllers.AssignmentsController;
 import com.lyric.controllers.ClientDemoController;
 import com.lyric.controllers.ServerDemoController;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigRenderOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
@@ -14,6 +16,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 import org.apache.commons.lang3.EnumUtils;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
@@ -35,6 +38,7 @@ public class ApiServer extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) throws JoseException {
+        final String assignmentsApiJson = ConfigFactory.parseResourcesAnySyntax("specs/v1/assignments-api").root().render(ConfigRenderOptions.concise().setFormatted(true));
 
         io.vertx.ext.web.Router router = io.vertx.ext.web.Router.router(vertx);
 
@@ -60,6 +64,12 @@ public class ApiServer extends AbstractVerticle {
         router.get("/token").handler(tokenController::getToken);
 
         router.post("/clients/:id/assignments").handler(assignmentsController::create);
+
+        router.route("/specs/v1/assignments-api.json").handler(routingContext -> {
+            routingContext.response().end(assignmentsApiJson);
+        });
+
+        router.get("/docs/assignments-api/*").handler(StaticHandler.create("assignments-api"));
 
         final JsonObject serverOptions = new JsonObject();
 
