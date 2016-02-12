@@ -37,6 +37,12 @@ public key.  The vendor will then be responsible to handling the assignment, the
 to Lyric.  Lyric's receipt of this response will be logged and used as a proof that the vendor received and acknowledged
 the assignment request.
 
+## Token API
+This API demonstrates how the vendor will need to generate a token that will authenticate with the Lyric system.  It can be
+used when calling loadData on the LyricWidget to view the advanceStatus.  The token needs to be signed with the vendor's
+private key and include the memberToken as the subject and the vendorId as a claim.  For demonstration purposes this API takes
+the memberToken as a parameter, but it could also take the vendor's unique id for the user and use that to look up the memberToken.
+
 ## Try It
 
 You are free to experiment with the Lyric Demo server, [deployed here](https://lyric-demo-server.herokuapp.com).
