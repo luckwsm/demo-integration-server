@@ -41,7 +41,7 @@ public class TokenController {
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
         claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
         claims.setSubject(memberToken); // the subject/principal is whom the token is about
-        //claims.setClaim("memberToken", client.getJsonObject("vendorAccount").getString("memberToken")); // additional claims/attributes about the subject can be added
+        claims.setClaim("vendorId", System.getenv("DEFAULT_VENDOR_ID")); // additional claims/attributes about the subject can be added
 
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
         // In this example it is a JWS so we create a JsonWebSignature object.
