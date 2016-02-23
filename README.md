@@ -35,7 +35,7 @@ processing fee has been paid back.  The body of the request will be signed with 
 The vendor will be responsible to decrypting the body with their private key and then verifying the signature with Lyric's
 public key.  The vendor will then be responsible to handling the assignment, then sending back a signed/encrypted response
 to Lyric.  Lyric's receipt of this response will be logged and used as a proof that the vendor received and acknowledged
-the assignment request.
+the assignment request.  More information can be found [here](https://lyric-demo-server.herokuapp.com/docs/assignments-api/).
 
 ## Token API
 This API demonstrates how the vendor will need to generate a token that will authenticate with the Lyric system.  It can be
