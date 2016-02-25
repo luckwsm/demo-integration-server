@@ -1,29 +1,34 @@
 package com.lyric.controllers;
 
+import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import org.jose4j.lang.JoseException;
 
 /**
  * Created by amadden on 1/29/16.
  */
 public class ClientDemoController extends DemoBaseController {
     private final Vertx vertx;
+
     Logger logger = LoggerFactory.getLogger(ClientDemoController.class.getName());
 
-    public ClientDemoController(Vertx vertx) {
+    public ClientDemoController(Vertx vertx, SecurityService securityService) {
+        super(securityService);
         this.vertx = vertx;
     }
 
-    public void create(RoutingContext routingContext){
+    public void create(RoutingContext routingContext) {
         HttpServerRequest req = routingContext.request();
 
         String clientId = getParam(req, "id", null);
 
-        if(clientId == null){
+        if (clientId == null) {
             req.response().setStatusMessage("Client Id cannot be null.");
             req.response().setStatusCode(500).end();
             return;
@@ -35,7 +40,16 @@ public class ClientDemoController extends DemoBaseController {
         setHeaders(cReq, req);
         cReq.setChunked(true);
 
-        cReq.write(routingContext.getBody());
+        Buffer payload = routingContext.getBody();
+
+        try {
+            String signedAndEncryptedPayload = signAndEncrypt(payload.getBytes(), req.getHeader("content-type"));
+            cReq.write(signedAndEncryptedPayload);
+
+        } catch (JoseException e) {
+            thowSignEncryptError(req);
+        }
+
         cReq.end();
     }
 }

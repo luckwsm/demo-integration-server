@@ -53,9 +53,11 @@ public class ApiServer extends AbstractVerticle {
         final JsonObject localJsonKey = config().getJsonObject("local").getJsonObject("key");
         final RsaJsonWebKey localRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(localJsonKey.toString());
 
-        final ClientDemoController clientDemoController = new ClientDemoController(vertx);
-        final ServerDemoController serverDemoController = new ServerDemoController(vertx);
-        final AssignmentsController assignmentsController = new AssignmentsController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
+        final SecurityService securityService = new SecurityService(lyricRsaJsonWebKey, localRsaJsonWebKey);
+
+        final ClientDemoController clientDemoController = new ClientDemoController(vertx, securityService);
+        final ServerDemoController serverDemoController = new ServerDemoController(vertx, securityService);
+        final AssignmentsController assignmentsController = new AssignmentsController(vertx, securityService);
         final TokenController tokenController = new TokenController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);

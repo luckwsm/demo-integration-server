@@ -1,6 +1,7 @@
 package com.lyric.controllers;
 
 import com.lyric.ClientRepository;
+import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
@@ -9,6 +10,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import org.jose4j.base64url.internal.apache.commons.codec.binary.Base64;
+import org.jose4j.jwk.RsaJsonWebKey;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.lang.JoseException;
 
 import java.io.IOException;
 
@@ -17,10 +22,12 @@ import java.io.IOException;
  */
 public class ServerDemoController extends DemoBaseController {
     private final Vertx vertx;
+
     Logger logger = LoggerFactory.getLogger(ServerDemoController.class.getName());
     private static String BOUNDARY = "----LyricBoundaryAL0lfjW6DJtKiwkd";
 
-    public ServerDemoController(Vertx vertx) {
+    public ServerDemoController(Vertx vertx, SecurityService securityService) {
+        super(securityService);
         this.vertx = vertx;
     }
 
@@ -35,8 +42,6 @@ public class ServerDemoController extends DemoBaseController {
             return;
         }
 
-
-
         JsonObject options = routingContext.getBodyAsJson().getJsonObject("options");
 
         /* Look up client data from your system */
@@ -44,13 +49,29 @@ public class ServerDemoController extends DemoBaseController {
 
         Buffer body = Buffer.buffer();
 
-        String contentType = options.getString("contentType");
+        String contentTypeFromOptions = options.getString("contentType");
 
-        if(contentType.equals("multipart/form-data")){
-            contentType = String.format("%s;boundary=%s", contentType, BOUNDARY);
-            generateMultipart(body, client, options);
+        String uri = getUri(contentTypeFromOptions);
+        HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
+
+
+
+        if(contentTypeFromOptions.equals("multipart/form-data")){
+            cReq.putHeader("content-type", contentTypeFromOptions);
+            contentTypeFromOptions = String.format("%s;boundary=%s", contentTypeFromOptions, BOUNDARY);
+            setHeaders(cReq, req);
+            cReq.putHeader("content-type", contentTypeFromOptions);
+
+
+            try {
+                generateMultipart(body, client, options);
+
+            } catch (JoseException e) {
+                thowSignEncryptError(req);
+            }
         }
         else{
+            setHeaders(cReq, req);
 //            if(shouldLoadRoyaltyEarningsCsv(options)){
 //                byte[] csvData = new byte[0];
 //                try {
@@ -62,20 +83,20 @@ public class ServerDemoController extends DemoBaseController {
 //                client.put("royaltyEarnings", encodedCsvData);
 //            }
             body.appendString(client.toString());
+
+            try {
+                body = Buffer.buffer(signAndEncrypt(body.getBytes(), contentTypeFromOptions));
+            } catch (JoseException e) {
+                thowSignEncryptError(req);
+            }
         }
-
-        String uri = getUri(contentType);
-        HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
-
-        setHeaders(cReq, req);
-        cReq.putHeader("content-type", contentType);
 
         cReq.setChunked(true);
 
         cReq.end(body);
     }
 
-    private void generateMultipart(Buffer body, JsonObject client, JsonObject options){
+    private void generateMultipart(Buffer body, JsonObject client, JsonObject options) throws JoseException {
         if(shouldLoadRoyaltyEarningsCsv(options)){
             byte[] csvData = new byte[0];
             try {
@@ -89,20 +110,26 @@ public class ServerDemoController extends DemoBaseController {
         body.appendString("--" + BOUNDARY + "--\r\n");
     }
 
-    private void addClientToBuffer(JsonObject client, Buffer buffer){
-        buffer.appendString("--" + BOUNDARY + "\r\n");
-        buffer.appendString("Content-Disposition: form-data; name=\"clientData\"\r\n");
-        buffer.appendString("\r\n");
-        buffer.appendString(client.toString());
-        buffer.appendString("\r\n");
+    private void addClientToBuffer(JsonObject client, Buffer buffer) throws JoseException {
+        String signedAndEncryptedPayload = signAndEncrypt(client.toString().getBytes(), "application/json");
+
+        String contentDisposition = "Content-Disposition: form-data; name=\"UserProfile\"\r\n";
+        addDataToBuffer(buffer, contentDisposition, signedAndEncryptedPayload);
     }
 
-    private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData) {
+    private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData) throws JoseException {
+        String signedAndEncryptedPayload = signAndEncrypt(royaltyEarningsData, options.getString("royaltyEarningsContentType"));
+
+        String contentDisposition = "Content-Disposition: form-data; name=\"royaltyEarnings\"; filename=\"" + options.getString("filename") + "\"\r\n";
+        addDataToBuffer(buffer, contentDisposition, signedAndEncryptedPayload);
+    }
+
+    private void addDataToBuffer(Buffer buffer, String contentDisposition, String payload){
         buffer.appendString("--" + BOUNDARY + "\r\n");
-        buffer.appendString("Content-Disposition: form-data; name=\"royaltyEarnings\"; filename=\"" + options.getString("filename") + "\"\r\n");
-        buffer.appendString("Content-Type: " + options.getString("royaltyEarningsContentType") + "\r\n");
+        buffer.appendString(contentDisposition);
+        buffer.appendString("Content-Type: application/jose\r\n");
         buffer.appendString("\r\n");
-        buffer.appendBytes(royaltyEarningsData);
+        buffer.appendString(payload);
         buffer.appendString("\r\n");
     }
 }

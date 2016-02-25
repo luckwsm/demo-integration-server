@@ -1,5 +1,6 @@
 package com.lyric.test.integration;
 
+import com.lyric.SecurityService;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonObject;
@@ -49,6 +50,7 @@ public class AssignmentTests extends TestsBase{
                 .put("amount", 5000)
                 .put("assignmentDate", LocalDateTime.now().toString());
 
+
         try {
             final JsonObject jsonKey = getLyricKeys();
             final RsaJsonWebKey lyricRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(jsonKey.toString());
@@ -56,8 +58,10 @@ public class AssignmentTests extends TestsBase{
             final JsonObject vendorKey = getVendorKey();
             final RsaJsonWebKey vendorRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(vendorKey.toString());
 
-            String signedPayload = signPayload(lyricRsaJsonWebKey, assignment);
-            String encryptedPayload = encryptPayload(signedPayload, vendorRsaJsonWebKey.getRsaPublicKey());
+            SecurityService securityService = new SecurityService(vendorRsaJsonWebKey, lyricRsaJsonWebKey);
+
+            String signedPayload = securityService.signPayload(assignment.toString(), "application/json").getCompactSerialization();
+            String encryptedPayload = securityService.encryptPayload(signedPayload);
 
             request.end(encryptedPayload);
         }
@@ -65,54 +69,6 @@ public class AssignmentTests extends TestsBase{
             e.printStackTrace();
         }
 
-    }
-
-    private String signPayload(RsaJsonWebKey rsaJsonWebKey, JsonObject assignment) throws JoseException{
-        // A JWT is a JWS and/or a JWE with JSON claims as the payload.
-        // In this example it is a JWS so we create a JsonWebSignature object.
-        JsonWebSignature jws = new JsonWebSignature();
-
-        // The payload of the JWS is JSON content of the JWT Claims
-        jws.setPayload(assignment.toString());
-
-        // The JWT is signed using the private key
-        jws.setKey(rsaJsonWebKey.getRsaPrivateKey());
-
-        // Set the Key ID (kid) header because it's just the polite thing to do.
-        // We only have one key in this example but a using a Key ID helps
-        // facilitate a smooth key rollover process
-        jws.setKeyIdHeaderValue(rsaJsonWebKey.getKeyId());
-
-        // Set the signature algorithm on the JWT/JWS that will integrity protect the claims
-        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
-        return jws.getCompactSerialization();
-    }
-
-    private String encryptPayload(String signedPayload, RSAPublicKey vendorPublicKey) throws JoseException {
-        // Create a new Json Web Encryption object
-        JsonWebEncryption senderJwe = new JsonWebEncryption();
-
-        // The plaintext of the JWE is the message that we want to encrypt.
-        senderJwe.setPlaintext(signedPayload);
-
-        // Set the "alg" header, which indicates the key management mode for this JWE.
-        senderJwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA1_5);
-
-        // Set the "enc" header, which indicates the content encryption algorithm to be used.
-        // This example is using AES_128_CBC_HMAC_SHA_256 which is a composition of AES CBC
-        // and HMAC SHA2 that provides authenticated encryption.
-        senderJwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
-
-        // Set the key on the JWE.
-        senderJwe.setKey(vendorPublicKey);
-
-        // Produce the JWE compact serialization, which is where the actual encryption is done.
-        // The JWE compact serialization consists of five base64url encoded parts
-        // combined with a dot ('.') character in the general format of
-        // <header>.<encrypted key>.<initialization vector>.<ciphertext>.<authentication tag>
-        // Direct encryption doesn't use an encrypted key so that field will be an empty string
-        // in this case.
-        return senderJwe.getCompactSerialization();
     }
 
     private JsonObject getLyricKeys(){

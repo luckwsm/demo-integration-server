@@ -1,12 +1,16 @@
 package com.lyric.controllers;
 
+import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.lang.JoseException;
 
 import java.io.UnsupportedEncodingException;
 
@@ -15,27 +19,30 @@ import java.io.UnsupportedEncodingException;
  */
 public class DemoBaseController {
     Logger logger = LoggerFactory.getLogger(DemoBaseController.class.getName());
+    private final SecurityService securityService;
+
+    public DemoBaseController(SecurityService securityService) {
+        this.securityService = securityService;
+    }
 
     protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx) {
-        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demoservices.lyricfinancial.com";
+        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "integrationservices.lyricfinancial.com";
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host)).setSsl(true));
 
         return httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());
             req.response().setStatusCode(cRes.statusCode());
             req.response().headers().setAll(cRes.headers());
-            req.response().setChunked(true);
+//            req.response().setChunked(true);
             cRes.bodyHandler(data -> {
                 logger.debug("Proxying response body:" + data);
-                req.response().write(data);
-                req.response().end();
+                req.response().end(data);
             });
-            req.response().end();
         });
     }
 
     protected String getUri(String contentType) {
-        String uri = "/vendorAPI/v1/clients.json";
+        String uri = "/vendorAPI/v1/clients";
 
         if(contentType.substring(0, 9).equals("multipart")){
             uri = "/vendorAPI/v1/clients.form";
@@ -50,6 +57,8 @@ public class DemoBaseController {
         */
         req.headers().remove(HttpHeaders.HOST);
         cReq.headers().setAll(req.headers());
+
+        cReq.putHeader("content-type", "application/jose");
 
         setAuthorizationHeaders(cReq, req);
     }
@@ -86,6 +95,16 @@ public class DemoBaseController {
 
     protected boolean shouldLoadRoyaltyEarningsCsv(JsonObject options) {
         return options.getString("royaltyEarningsContentType").equals("text/csv") && !options.getString("filename").equals("");
+    }
+
+    protected String signAndEncrypt(byte[] payload, String cty) throws JoseException {
+        JsonWebSignature jws = securityService.signPayload(Base64.encodeBase64String(payload), cty);
+        return securityService.encryptPayload(jws.getCompactSerialization());
+    }
+
+    protected void thowSignEncryptError(HttpServerRequest req) {
+        req.response().setStatusMessage("Could not sign and encrypt payload.");
+        req.response().setStatusCode(500).end();
     }
 
 }
