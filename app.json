@@ -4,7 +4,7 @@
   "repository": "https://github.com/LyricFinancial/demo-integration-server",
   "website": "https://github.com/LyricFinancial/integration-guides",
   "keywords": ["lyric", "server", "demo"],
-  "success_url": "https://github.com/LyricFinancial/demo-integration-server/blob/master/Welcome.md",
+  "success_url": "http://dev-docs.lyricfinancial.com/Demo_Integration_Server/Welcome.html",
   "env": {
     "DEFAULT_VENDOR_ID": {
       "description": "Your vendorId provided by Lyric",
