@@ -2,7 +2,6 @@ package com.lyric.controllers;
 
 import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -98,8 +97,8 @@ public class DemoBaseController {
     }
 
     protected String signAndEncrypt(byte[] payload, String cty) throws JoseException {
-        JsonWebSignature jws = securityService.signPayload(Base64.encodeBase64String(payload), cty);
-        return securityService.encryptPayload(jws.getCompactSerialization());
+        JsonWebSignature jws = securityService.createSignature(payload);
+        return securityService.encryptPayload(jws, payload, cty);
     }
 
     protected void thowSignEncryptError(HttpServerRequest req) {

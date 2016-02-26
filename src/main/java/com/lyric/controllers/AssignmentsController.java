@@ -8,16 +8,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
-import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
-import org.jose4j.jwe.JsonWebEncryption;
-import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
-import org.jose4j.jwk.RsaJsonWebKey;
-import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
-
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 
 /**
  * Created by amadden on 1/29/16.
@@ -57,8 +49,8 @@ public class AssignmentsController {
 
             JsonObject responseObject = new JsonObject().put("test", "test");
 
-            JsonWebSignature responseJws = securityService.signPayload(responseObject.toString(), "application/json");
-            String compactSerialization = securityService.encryptPayload(responseJws.getCompactSerialization());
+            JsonWebSignature signature = securityService.createSignature(responseObject.toString().getBytes());
+            String compactSerialization = securityService.encryptPayload(signature, responseObject.toString().getBytes(), "application/json");
 
 
             response.end(compactSerialization);

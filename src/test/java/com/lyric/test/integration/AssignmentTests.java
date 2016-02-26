@@ -7,20 +7,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
-import org.jose4j.jwe.JsonWebEncryption;
-import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
-import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.security.Key;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.time.LocalDateTime;
 
 /**
@@ -60,8 +53,8 @@ public class AssignmentTests extends TestsBase{
 
             SecurityService securityService = new SecurityService(vendorRsaJsonWebKey, lyricRsaJsonWebKey);
 
-            String signedPayload = securityService.signPayload(assignment.toString(), "application/json").getCompactSerialization();
-            String encryptedPayload = securityService.encryptPayload(signedPayload);
+            JsonWebSignature signedPayload = securityService.createSignature(assignment.toString().getBytes());
+            String encryptedPayload = securityService.encryptPayload(signedPayload, assignment.toString().getBytes(), "application/json");
 
             request.end(encryptedPayload);
         }

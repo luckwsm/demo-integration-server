@@ -29,7 +29,6 @@ public class TokenController {
     public void getToken(RoutingContext routingContext) {
 
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
-
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         claims.setIssuer("Lyric");  // who creates the token and signs it
