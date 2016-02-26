@@ -58,7 +58,7 @@ public class ApiServer extends AbstractVerticle {
         final ClientDemoController clientDemoController = new ClientDemoController(vertx, securityService);
         final ServerDemoController serverDemoController = new ServerDemoController(vertx, securityService);
         final AssignmentsController assignmentsController = new AssignmentsController(vertx, securityService);
-        final TokenController tokenController = new TokenController(vertx, lyricRsaJsonWebKey, localRsaJsonWebKey);
+        final TokenController tokenController = new TokenController(vertx, localRsaJsonWebKey);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);

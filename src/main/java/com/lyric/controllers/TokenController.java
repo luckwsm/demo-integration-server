@@ -18,19 +18,17 @@ import org.jose4j.lang.JoseException;
  */
 public class TokenController {
     private final Vertx vertx;
-    private final RsaJsonWebKey lyricRsaJsonWebKey;
     private final RsaJsonWebKey vendorRsaJsonWebKey;
     Logger logger = LoggerFactory.getLogger(TokenController.class.getName());
 
-    public TokenController(Vertx vertx, RsaJsonWebKey lyricRsaJsonWebKey, RsaJsonWebKey vendorRsaJsonWebKey) {
+    public TokenController(Vertx vertx, RsaJsonWebKey vendorRsaJsonWebKey) {
         this.vertx = vertx;
-        this.lyricRsaJsonWebKey = lyricRsaJsonWebKey;
         this.vendorRsaJsonWebKey = vendorRsaJsonWebKey;
     }
 
     public void getToken(RoutingContext routingContext) {
 
-        String memberToken = routingContext.request().getParam("memberToken");
+        String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
@@ -40,7 +38,7 @@ public class TokenController {
         claims.setGeneratedJwtId(); // a unique identifier for the token
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
         claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
-        claims.setSubject(memberToken); // the subject/principal is whom the token is about
+        claims.setSubject(vendorClientAccountId); // the subject/principal is whom the token is about
         claims.setClaim("vendorId", System.getenv("DEFAULT_VENDOR_ID")); // additional claims/attributes about the subject can be added
 
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
