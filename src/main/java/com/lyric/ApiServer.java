@@ -66,6 +66,7 @@ public class ApiServer extends AbstractVerticle {
         router.get("/token").handler(tokenController::getToken);
 
         router.post("/clients/:id/assignments").handler(assignmentsController::create);
+        router.get("/clients/:id/assignments").handler(assignmentsController::get);
 
         router.route("/specs/v1/assignments-api.json").handler(routingContext -> {
             routingContext.response().end(assignmentsApiJson);

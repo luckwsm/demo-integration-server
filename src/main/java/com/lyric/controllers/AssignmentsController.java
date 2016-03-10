@@ -3,11 +3,14 @@ package com.lyric.controllers;
 import com.lyric.AssignmentService;
 import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import org.jose4j.jwe.JsonWebEncryption;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 
@@ -30,22 +33,20 @@ public class AssignmentsController {
     }
 
     public void create(RoutingContext routingContext){
-
+        HttpServerRequest request = routingContext.request();
+        String vendorClientAccountId = request.getParam("id");
         final HttpServerResponse response = routingContext.response();
         try {
-            String signedPayload = securityService.decryptPayload(routingContext.getBodyAsString());
+            JsonWebEncryption jwe = securityService.decryptPayload(routingContext.getBodyAsString());
 
-
-            JsonWebSignature jws = securityService.getJws(signedPayload);
-
-            if(!jws.verifySignature()){
+            if(!securityService.isValidSignature(jwe)){
                 logger.error("Signature is not Verified");
                 response.setStatusCode(500);
                 response.end();
                 return;
             }
 
-            assignmentService.assign(new JsonObject(jws.getPayload()));
+            assignmentService.assign(vendorClientAccountId, new JsonObject(jwe.getPlaintextString()));
 
             JsonObject responseObject = new JsonObject().put("test", "test");
 
@@ -60,6 +61,17 @@ public class AssignmentsController {
             response.setStatusMessage(e.getMessage());
             response.end();
         }
+    }
+
+    // This is here strictly for demonstration purposes
+    public void get(RoutingContext routingContext){
+        HttpServerRequest request = routingContext.request();
+        String vendorClientAccountId = request.getParam("id");
+        final HttpServerResponse response = routingContext.response();
+
+        final JsonArray assignments = assignmentService.list(vendorClientAccountId);
+
+        response.end(assignments.encodePrettily());
     }
 
 }

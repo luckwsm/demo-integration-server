@@ -3,6 +3,7 @@ package com.lyric.test.integration;
 import com.lyric.SecurityService;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -31,7 +32,9 @@ public class AssignmentTests extends TestsBase{
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/assignments", resp -> {
             context.assertEquals(200, resp.statusCode());
-            async.complete();
+
+            assertAssignments(async, random, client, context);
+           // async.complete();
         });
         request.headers().set("content-type", "application/json");
 
@@ -64,16 +67,33 @@ public class AssignmentTests extends TestsBase{
 
     }
 
+    private void assertAssignments(Async async, Integer vendorClientAccountId, HttpClient client, TestContext context) {
+        final HttpClientRequest request = client.get(8080, "localhost", "/clients/" + vendorClientAccountId + "/assignments", resp -> {
+            context.assertEquals(200, resp.statusCode());
+
+            resp.bodyHandler(body -> {
+                JsonArray assignments = new JsonArray(body.toString());
+                context.assertEquals(1, assignments.size());
+                async.complete();
+            });
+
+        });
+        request.headers().set("content-type", "application/json");
+
+
+        request.end();
+    }
+
     private JsonObject getLyricKeys(){
         return new JsonObject("{\n" +
 
                 "      \"alg\": \"RS256\",\n" +
-                "      \"d\": \"YNjfnEFKYrPFWGndwqZmYoe6qTQ4pnZMcz-7xx4qMQj4Br7hNY-eBWLwhEd1XLfLwIht3aDmLWNF4_OuvR1teSoXx1gG5OQdUAFeP0HiGFS5amULppV1UfoZvnvm-E3OqnfBmtpuJ7kcHCeNkvsgFPt7Trtc-AuCU2ThCv5bsW5i_OMoFWSgdj98slKueBC4G_VVEe29w6rTm06mgJ-d7vB7-0HWF2tKkUGHfCPhqQZsOORMToC9XIPCcla-PpMOoaR2gJ9ZtXBduilHEf7JTZYipaUCIFEQdwiPOPvU897GJQUws8PCTyK11MRJiasqGrbL6AJnaMaO1i70v_fwAQ\",\n" +
+                "      \"d\": \"rD4nLCsUBaiWNZyCIrV7m3FGTZVV5b45-OOzgYHrCH-auI8A-WuZ09NFeO1DtGZjNGDGcJyGWkDMiLTC9T7xMqI6yrl0GWdW_ldtjTpE4B1tSQL3XJqDZtx8EfOk9E5wpUpjez0WR7qoSpnKxViB7UXmt8Apd7ARqpjQrhDpwyOYzk1k6JsYJSGEa9Gur8iM70Iwh4h3ppKMD5IV-OmPB2Oi_w4tMD88Ggfo3z5V6gQBmrTiMaKhlCG8Z6HzKR9vT0HIafNaojzBXhsoISduNUz11XwB96vqRaQkcC_KgTCFoKOwM6ClRw4ePUmQ0ZnF3Ib-2O-LUku3fWXrNMKsgQ\",\n" +
                 "      \"e\": \"AQAB\",\n" +
-                "      \"n\": \"gLZomlXr62QMsFaqrR_xbWJU-m3Rn473aTiPkX6tg6vSOxf2ow6N-wVuA0fmRazQnUKGbWMyaQpmXv2a6qIHGDXpqdza8Bvrq8RvTr6NrOOvQhwwkbK67iNyFwmp4rQd3NCM-Kt9Gp4r97Z07JvCSOf_DmeOowN1nIcqnFJEXBd9_H1ZemP2paNMqXya9cPKYnogkG0E_jtK2ONPqYxQq5s-nOV3CFI8DFMPS43Y17PZGcNYRJrOSfTnTCE-TLQag9M_cvYadlqz8n2V_QyJEwqiIWfYwgej_NIbSUHrkG2qbvWg_VRwnwxo-XkEX9_wizBnsb0FnU8eaVU0pRp5rw\",\n" +
+                "      \"n\": \"v9-AW7Ox9PwnHqU_JMsmS84E3lqGEgzPKAXDT_Ma2YubJz1PDr61bq-yWt5boTgCWCii_bci1ym7rC5HnWxt8KDimzSy3wyIn39ASAXtUR6fUrZFnr8K78cP3fQf6-TedVxtMRYB1MTSR_-JOJ3vLTf-UaB75EMoAmmqZRkZFOHF6Z9KTEW8J6rYWD6CifVtGXLRB9edh9jTLfke8poArQOOgHH7ad5PNa9ksZslgd8tpNdoxagNYVGiIS5dY02qG3mWKAv2baTgDhXuk7N75o7GIzOQGaQIXd1SWQvNQV_RCarEMq4kwmfC2W2ZzUVb_bKgI69ywu6iZ0exJYWiZw\",\n" +
                 "      \"kty\": \"RSA\",\n" +
                 "      \"use\": \"sig\",\n" +
-                "      \"kid\": \"lyric2\"\n" +
+                "      \"kid\": \"lyric1\"\n" +
 
                 "}");
     }
@@ -82,10 +102,10 @@ public class AssignmentTests extends TestsBase{
         return new JsonObject("{\n" +
                 "            \"alg\": \"RS256\",\n" +
                 "                \"e\": \"AQAB\",\n" +
-                "                \"n\": \"wv9V0_9mHIAnpE3Lr6k6wRJ2QA7p4xhb_1AbbbP0NpPauZ9u_07AQw7Z6y36zLQ8donhDumkOSjqA5WuAoq1BEvs5eAHu0szRqE8_sxBobNaxgEQaw31FD250qkv8-9xpdJ5_wG4xJp0VCa37MJlqUjs2PbEmIkCLrosrdfwMxGMKDy7FRQePt95-R8Y-VMBg8VeUt6CFOCYkJeb6zri9uX4jMAUCRnOBlmtkIZ-SnidRYk1QOuvhy8P_IOn8h_vyUbBOyN-mvYct02WJsBHd3xQJE3klV2JUI3Wx0MxWAZHcGz6YV25G8w-d9XnKUVlWdNfO4BEOQubjRYNQ71YPQ\",\n" +
+                "                \"n\": \"gp4Kqosoo5GDhrWC180gyIug7KSee88M9SOSRTGSKgWrzk67g-88L5BoSo1faL2-8fYuEcbNVhc6XrT94lmxpMErKNMVnzBUPMZFqXMyzM71V3pfvgW9fyUO7TWTkR9i8I2OLp6HGwlOHJjeUJzXWdU6yp6FzB0gFi6PPrieiwSSnMbeAmXdYa2p90dpk8a8GzK0dGOWHntlPG8y7OZz1UvUJncT7B4HXFmdxlqNYj-O7dwZdvv0zbHp7hERzGn8DvvrAPNu8vyMYJrLEh0TFl9HRRa0q9xP6G7mcICv6LrTUaPjplRr2awPGC6rvzik9SWwYOor_oxnmVWmiKZsPQ\",\n" +
                 "                \"kty\": \"RSA\",\n" +
                 "                \"use\": \"enc\",\n" +
-                "                \"kid\": \"demo-vendor\"\n" +
+                "                \"kid\": \"vendor1\"\n" +
                 "        }");
     }
 }

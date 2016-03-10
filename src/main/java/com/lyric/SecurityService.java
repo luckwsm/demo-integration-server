@@ -26,29 +26,23 @@ public class SecurityService {
         this.localRsaJsonWebKey = localRsaJsonWebKey;
     }
 
-    public String decryptPayload(String payload) throws JoseException {
-        JsonWebEncryption jwe = new JsonWebEncryption();
-
-        // Set the compact serialization on new Json Web Encryption object, which is the payload of
-        // the verified jsonWebSignature
-        jwe.setCompactSerialization(payload);
-
-        // Symmetric encryption, like we are doing here, requires that both parties have the same key.
-        // The key will have had to have been securely exchanged out-of-band somehow.
-        jwe.setKey(localRsaJsonWebKey.getRsaPrivateKey());
-
-        // Get the message that was encrypted in the JWE. This step performs the actual decryption steps.
-        String decryptedPayload = jwe.getPlaintextString();
-        return decryptedPayload;
-    }
-
-    public JsonWebSignature getJws(String body) throws JoseException {
+    public JsonWebSignature createSignature(byte[] payload) {
+        final HashCode contentHash = hashFunction.hashBytes(payload);
 
         JsonWebSignature jws = new JsonWebSignature();
 
-        // Set the compact serialization on the JWS to the body of the request
-        jws.setCompactSerialization(body);
-        jws.setKey(remoteRsaJsonWebKey.getRsaPublicKey());
+        // The payload of the JWS is compactSerialization of the JWE
+        jws.setPayload(contentHash.toString());
+
+        // The JWT is signed using the private key
+        jws.setKey(localRsaJsonWebKey.getRsaPrivateKey());
+
+        jws.setContentTypeHeaderValue("text/plain");
+
+        jws.setKeyIdHeaderValue(localRsaJsonWebKey.getKeyId());
+
+        // Set the signature algorithm on the JWS that will integrity protect the response
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
         return jws;
     }
 
@@ -83,23 +77,27 @@ public class SecurityService {
         return jwe.getCompactSerialization();
     }
 
-    public JsonWebSignature createSignature(byte[] payload) {
-        final HashCode contentHash = hashFunction.hashBytes(payload);
+    public JsonWebEncryption decryptPayload(String payload) throws JoseException {
+        JsonWebEncryption jwe = new JsonWebEncryption();
+
+        // Set the compact serialization on new Json Web Encryption object, which is the payload of
+        // the verified jsonWebSignature
+        jwe.setCompactSerialization(payload);
+
+        // Symmetric encryption, like we are doing here, requires that both parties have the same key.
+        // The key will have had to have been securely exchanged out-of-band somehow.
+        jwe.setKey(localRsaJsonWebKey.getRsaPrivateKey());
+
+        return jwe;
+    }
+
+    public boolean isValidSignature(JsonWebEncryption jwe) throws JoseException {
+        String signature = jwe.getHeader(HEADER_SIGNATURE);
 
         JsonWebSignature jws = new JsonWebSignature();
+        jws.setCompactSerialization(signature);
+        jws.setKey(remoteRsaJsonWebKey.getRsaPublicKey());
 
-        // The payload of the JWS is compactSerialization of the JWE
-        jws.setPayload(contentHash.toString());
-
-        // The JWT is signed using the private key
-        jws.setKey(localRsaJsonWebKey.getRsaPrivateKey());
-
-        jws.setContentTypeHeaderValue("text/plain");
-
-        jws.setKeyIdHeaderValue(localRsaJsonWebKey.getKeyId());
-
-        // Set the signature algorithm on the JWS that will integrity protect the response
-        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
-        return jws;
+        return jws.verifySignature();
     }
 }
