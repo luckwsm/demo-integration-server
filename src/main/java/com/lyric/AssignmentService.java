@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ public class AssignmentService {
     Map<String, JsonArray> assignmentMap = new HashMap<>();
 
     public void assign(String vendorClientAccountId, JsonObject assignment){
+        assignment.put("assignmentDate", new Date().toString());
         logger.info(String.format("Assignment Body: %s", assignment));
 
         JsonArray vendorClientAccountAssignments = assignmentMap.get(vendorClientAccountId);
