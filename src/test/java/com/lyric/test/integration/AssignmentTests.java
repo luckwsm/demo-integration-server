@@ -88,9 +88,9 @@ public class AssignmentTests extends TestsBase{
         return new JsonObject("{\n" +
 
                 "      \"alg\": \"RS256\",\n" +
-                "      \"d\": \"rD4nLCsUBaiWNZyCIrV7m3FGTZVV5b45-OOzgYHrCH-auI8A-WuZ09NFeO1DtGZjNGDGcJyGWkDMiLTC9T7xMqI6yrl0GWdW_ldtjTpE4B1tSQL3XJqDZtx8EfOk9E5wpUpjez0WR7qoSpnKxViB7UXmt8Apd7ARqpjQrhDpwyOYzk1k6JsYJSGEa9Gur8iM70Iwh4h3ppKMD5IV-OmPB2Oi_w4tMD88Ggfo3z5V6gQBmrTiMaKhlCG8Z6HzKR9vT0HIafNaojzBXhsoISduNUz11XwB96vqRaQkcC_KgTCFoKOwM6ClRw4ePUmQ0ZnF3Ib-2O-LUku3fWXrNMKsgQ\",\n" +
+                "      \"d\": \"UnuQUyXS1Wm76PjQxtlMKv06kfisjcS3Pu_wuSooXyjkY0yVuOUUmQ2bkV1GnZNpN-QSsrmfC5hQc_786ynk2oD5Jn9oYLDBaJgbHr55jz5jBMm4HmP_1gG-17G0JQ9Jr52Uy3u69DBKtL36KSeDzEcvyFrhYsz-W0jAw4Mhottl9HOa5pSEPeF_mzjQ71Oot0L0XiXbiOklLEm7zKumtdARZFpM_yW_YAPEyms9u8Q4MGq415aHPJF_ec8cqaVCyYgR1b9OMfKiOntkpFURLWCD_JYn-pkFLdVJeabKhLWhQ66fpDVI6VwCpj7x-UmbC_7OrOLlB2o7VYh_bafRUQ\",\n" +
                 "      \"e\": \"AQAB\",\n" +
-                "      \"n\": \"v9-AW7Ox9PwnHqU_JMsmS84E3lqGEgzPKAXDT_Ma2YubJz1PDr61bq-yWt5boTgCWCii_bci1ym7rC5HnWxt8KDimzSy3wyIn39ASAXtUR6fUrZFnr8K78cP3fQf6-TedVxtMRYB1MTSR_-JOJ3vLTf-UaB75EMoAmmqZRkZFOHF6Z9KTEW8J6rYWD6CifVtGXLRB9edh9jTLfke8poArQOOgHH7ad5PNa9ksZslgd8tpNdoxagNYVGiIS5dY02qG3mWKAv2baTgDhXuk7N75o7GIzOQGaQIXd1SWQvNQV_RCarEMq4kwmfC2W2ZzUVb_bKgI69ywu6iZ0exJYWiZw\",\n" +
+                "      \"n\": \"kG-mk5kcMJ-vlAMvkG_6_rW9exOmBwpV6PvvQ0kvxFzG4syVJy-apLLqZEhXaNGhDcHvtlHnDi6fdcUnSns0hYFRWnHJCHnS8jv4_ODMGEu_8Wv8K5YaJKWQreh3_tHR_82vwisjFujN5WH8FNw7gg1MNcEqGxpztcqzpuK34JNXoafd23wqaV6-oa26HBQEjBvk-pXs8ip0qQYAc9aDAfOdYSHYrRSXku68zU5nqdKwDbmayIpopiDz4ugnPWH3XnyQy3JuHHIzTHR8ptHiI2I3NgxOQk64PJ3Hx2FMJFY535MRaI-uySqCu2tOzB7PMgvQaf5LA36zkeVka62EQw\",\n" +
                 "      \"kty\": \"RSA\",\n" +
                 "      \"use\": \"sig\",\n" +
                 "      \"kid\": \"lyric1\"\n" +
