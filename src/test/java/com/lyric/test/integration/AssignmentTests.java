@@ -32,6 +32,7 @@ public class AssignmentTests extends TestsBase{
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/assignments", resp -> {
             context.assertEquals(200, resp.statusCode());
+            context.assertEquals("application/jose", resp.getHeader("content-type"));
 
             assertAssignments(async, random, client, context);
            // async.complete();

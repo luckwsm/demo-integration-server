@@ -54,7 +54,7 @@ public class AssignmentsController {
             String compactSerialization = securityService.encryptPayload(signature, responseObject.toString().getBytes(), "application/json");
 
 
-            response.end(compactSerialization);
+            response.putHeader("content-type", "application/jose").end(compactSerialization);
         } catch (JoseException e) {
             logger.error(e);
             response.setStatusCode(500);
