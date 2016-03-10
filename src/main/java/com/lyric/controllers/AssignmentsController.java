@@ -46,9 +46,11 @@ public class AssignmentsController {
                 return;
             }
 
-            assignmentService.assign(vendorClientAccountId, new JsonObject(jwe.getPlaintextString()));
+            JsonObject assignment = new JsonObject(jwe.getPlaintextString());
+            assignmentService.assign(vendorClientAccountId, assignment);
 
-            JsonObject responseObject = new JsonObject().put("test", "test");
+            JsonObject responseObject = new JsonObject().put("memberToken", assignment.getString("memberToken"))
+                    .put("vendorClientAccountId", assignment.getString("vendorClientAccountId"));
 
             JsonWebSignature signature = securityService.createSignature(responseObject.toString().getBytes());
             String compactSerialization = securityService.encryptPayload(signature, responseObject.toString().getBytes(), "application/json");
