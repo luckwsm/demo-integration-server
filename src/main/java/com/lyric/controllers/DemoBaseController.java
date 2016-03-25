@@ -25,7 +25,7 @@ public class DemoBaseController {
     }
 
     protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx) {
-        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "integrationservices.lyricfinancial.com";
+        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "devservices.lyricfinancial.com";
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host)).setSsl(true));
 
         return httpClient.post(uri, cRes -> {

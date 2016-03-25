@@ -47,18 +47,25 @@ public class ApiServer extends AbstractVerticle {
 
         router.route().handler(BodyHandler.create());
 
-        final JsonObject lyricJsonKey = config().getJsonObject("lyric").getJsonObject("key");
-        final RsaJsonWebKey lyricRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(lyricJsonKey.toString());
+        final JsonObject lyricAssignmentJsonKey = config().getJsonObject("lyricAssignment").getJsonObject("key");
+        final RsaJsonWebKey lyricAssignmentRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(lyricAssignmentJsonKey.toString());
 
-        final JsonObject localJsonKey = config().getJsonObject("local").getJsonObject("key");
-        final RsaJsonWebKey localRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(localJsonKey.toString());
+        final JsonObject lyricApiJsonKey = config().getJsonObject("lyricApi").getJsonObject("key");
+        final RsaJsonWebKey lyricApiRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(lyricApiJsonKey.toString());
 
-        final SecurityService securityService = new SecurityService(lyricRsaJsonWebKey, localRsaJsonWebKey);
+        final JsonObject localAssignmentJsonKey = config().getJsonObject("localAssignment").getJsonObject("key");
+        final RsaJsonWebKey localAssignmentRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(localAssignmentJsonKey.toString());
 
-        final ClientDemoController clientDemoController = new ClientDemoController(vertx, securityService);
-        final ServerDemoController serverDemoController = new ServerDemoController(vertx, securityService);
-        final AssignmentsController assignmentsController = new AssignmentsController(vertx, securityService);
-        final TokenController tokenController = new TokenController(vertx, localRsaJsonWebKey);
+        final JsonObject localApiJsonKey = config().getJsonObject("localApi").getJsonObject("key");
+        final RsaJsonWebKey localApiRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(localApiJsonKey.toString());
+
+        final SecurityService assignmentSecurityService = new SecurityService(lyricAssignmentRsaJsonWebKey, localAssignmentRsaJsonWebKey);
+        final SecurityService apiSecurityService = new SecurityService(lyricApiRsaJsonWebKey, localApiRsaJsonWebKey);
+
+        final ClientDemoController clientDemoController = new ClientDemoController(vertx, apiSecurityService);
+        final ServerDemoController serverDemoController = new ServerDemoController(vertx, apiSecurityService);
+        final AssignmentsController assignmentsController = new AssignmentsController(vertx, assignmentSecurityService);
+        final TokenController tokenController = new TokenController(vertx, localApiRsaJsonWebKey);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);
