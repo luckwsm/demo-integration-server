@@ -38,7 +38,6 @@ public class ApiServer extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) throws JoseException {
-        final String assignmentsApiJson = ConfigFactory.parseResourcesAnySyntax("specs/v1/assignments-api").root().render(ConfigRenderOptions.concise().setFormatted(true));
 
         io.vertx.ext.web.Router router = io.vertx.ext.web.Router.router(vertx);
 
@@ -74,12 +73,6 @@ public class ApiServer extends AbstractVerticle {
 
         router.post("/clients/:id/assignments").handler(assignmentsController::create);
         router.get("/clients/:id/assignments").handler(assignmentsController::get);
-
-        router.route("/specs/v1/assignments-api.json").handler(routingContext -> {
-            routingContext.response().end(assignmentsApiJson);
-        });
-
-        router.get("/docs/assignments-api/*").handler(StaticHandler.create("assignments-api"));
 
         final JsonObject serverOptions = new JsonObject();
 
