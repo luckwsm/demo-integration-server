@@ -32,7 +32,7 @@ public class TokenController {
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         claims.setIssuer("Lyric");  // who creates the token and signs it
-        claims.setAudience("Lyric"); // to whom the token is intended to be sent
+        claims.setAudience("widgetApi"); // to whom the token is intended to be sent
         claims.setExpirationTimeMinutesInTheFuture(60); // time when the token will expire (10 minutes from now)
         claims.setGeneratedJwtId(); // a unique identifier for the token
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
