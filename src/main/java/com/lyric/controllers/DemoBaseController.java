@@ -66,22 +66,8 @@ public class DemoBaseController {
         String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
         cReq.putHeader("vendorId", vendorId);
 
-        /* Username and password are used to generate the authorization header.  These values need to
-        be base64 encoded to create the new authorization token.
-         */
-        String authToken = null;
-        try {
-            String username = getParam(req, "username", System.getenv("DEFAULT_USERNAME"));
-            String password = getParam(req, "password", System.getenv("DEFAULT_PASSWORD"));
-            authToken = this.createCredentials(username, password);
-        } catch (UnsupportedEncodingException e) {
-            logger.error("Could not create client credentials", e.getCause());
-        }
-        cReq.putHeader(HttpHeaders.AUTHORIZATION, "Basic " + authToken);
-    }
-
-    private String createCredentials(String username, String password) throws UnsupportedEncodingException {
-        return Base64.encodeBase64String(String.format("%s:%s", username, password).getBytes("UTF-8"));
+        String authToken = getParam(req, "authToken", System.getenv("DEFAULT_AUTH_TOKEN"));
+        cReq.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authToken);
     }
 
     protected String getParam(HttpServerRequest request, String paramName, String defaultValue) {

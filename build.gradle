@@ -49,8 +49,7 @@ dependencies {
 test {
     environment 'PORT', '8080'
     environment 'DEFAULT_VENDOR_ID', 'demo'
-    environment 'DEFAULT_USERNAME', 'demo'
-    environment 'DEFAULT_PASSWORD', 'zVHdwN7XCGGGb]DZUzig4rVAv4EELb8j'
+    environment 'DEFAULT_AUTH_TOKEN', 'eyJraWQiOiJkZW1vQVBJTHlyaWMiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJMeXJpYyIsImF1ZCI6Ikx5cmljIiwiZXhwIjo0NjEzNDU4MzUyLCJqdGkiOiJBaXcyNS1NNUcyTzhRUUxIUGg0YXN3IiwiaWF0IjoxNDU5ODU4MzUyLCJuYmYiOjE0NTk4NTgyMzIsInN1YiI6ImRlbW8iLCJ2ZW5kb3JJZCI6ImRlbW8ifQ.giKyADgbnbhqUqRDhP6LpdNW_hk7g0pxt0bZ3kn4rwxNfkOQ-1rWsIE_tWSLfBAniEpfiQlQzArgT2Lu_kDQU18NHd9334yxKmfQIpMifowRUXEB6TxLpxU-8yirLNLwV5kWwZUpl0io6JDydhSuRYD1xiAiUdv176OZuKleRuohf36QPg3NAhkU3RwdgkWxmFoKmFs3FXkw0eWk49tvbvmM4ylHBKteo8IW-_oyeW5xiyR-nEoaQguhmmZ3_ARw4qKqzNBkDWKTmHQQAuocudSy_UJLFOF7kFhjLpphyJLwL7m5Rc_KYVfN7NgkBLxkPGrsq45OTOyFwe2cDe-qJQ'
     environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'devservices.lyricfinancial.com'
 }
 

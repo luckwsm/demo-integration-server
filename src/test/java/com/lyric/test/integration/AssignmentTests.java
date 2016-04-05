@@ -86,27 +86,21 @@ public class AssignmentTests extends TestsBase{
     }
 
     private JsonObject getLyricKeys(){
-        return new JsonObject("{\n" +
-
-                "      \"alg\": \"RS256\",\n" +
-                "      \"d\": \"UnuQUyXS1Wm76PjQxtlMKv06kfisjcS3Pu_wuSooXyjkY0yVuOUUmQ2bkV1GnZNpN-QSsrmfC5hQc_786ynk2oD5Jn9oYLDBaJgbHr55jz5jBMm4HmP_1gG-17G0JQ9Jr52Uy3u69DBKtL36KSeDzEcvyFrhYsz-W0jAw4Mhottl9HOa5pSEPeF_mzjQ71Oot0L0XiXbiOklLEm7zKumtdARZFpM_yW_YAPEyms9u8Q4MGq415aHPJF_ec8cqaVCyYgR1b9OMfKiOntkpFURLWCD_JYn-pkFLdVJeabKhLWhQ66fpDVI6VwCpj7x-UmbC_7OrOLlB2o7VYh_bafRUQ\",\n" +
-                "      \"e\": \"AQAB\",\n" +
-                "      \"n\": \"kG-mk5kcMJ-vlAMvkG_6_rW9exOmBwpV6PvvQ0kvxFzG4syVJy-apLLqZEhXaNGhDcHvtlHnDi6fdcUnSns0hYFRWnHJCHnS8jv4_ODMGEu_8Wv8K5YaJKWQreh3_tHR_82vwisjFujN5WH8FNw7gg1MNcEqGxpztcqzpuK34JNXoafd23wqaV6-oa26HBQEjBvk-pXs8ip0qQYAc9aDAfOdYSHYrRSXku68zU5nqdKwDbmayIpopiDz4ugnPWH3XnyQy3JuHHIzTHR8ptHiI2I3NgxOQk64PJ3Hx2FMJFY535MRaI-uySqCu2tOzB7PMgvQaf5LA36zkeVka62EQw\",\n" +
-                "      \"kty\": \"RSA\",\n" +
-                "      \"use\": \"sig\",\n" +
-                "      \"kid\": \"lyric1\"\n" +
-
+        return new JsonObject("{\"kty\":\"RSA\"," +
+                "\"kid\":\"demoAssignmentLyric\"," +
+                "\"n\":\"1b-YbDM3fKZjdHlrS59X7BxZwEqeh-NiSoMc_yUB9XzNywtrVYeCj5SXaltJA0neYsqeaZaMl767Za7VYIajjredrxn4BFDeJYnDZgEJh_3DOtrOjBUU2ydqenqiHGYkO5DN4LstFilhYcVG4VkgYY_GELQ7KmOh8S83XxrDmB_AXZBlRcuj4UVAxS7beeDgcKAvSVA0ZkOlKEM_Oi39o2h9VHkt2qPvi43EuIydooPKgsMdvgBx9pgbUA2Q5Akj5QehVvI0WfXxtAkZuFCU6cNN7WNwvfnGX0wl3F74vGS9RLL-mxg7aChLJxi4ZK-jB9u7gH9ug3sOw-T-361FoQ\"," +
+                "\"e\":\"AQAB\"," +
+                "\"d\":\"YnHj2bGdFKPtmm9xo1q4O96y14WGjj-DvZ21dS2uQUpB3gpcXQAUedyOAEYa0pDrA8UeQLM9_YWy-ZoUXGimW8zlqwfi2toD9nYEsK45nZCaoji0eIAdIvJ8b_ybPUkt1uFScPbERTi5yTX69z79UvHM31SjC1rn8xU0A3FoNF9Th7L6PLVw41-wk8Uw60g8e2mn1-LmYM3PN3TuFkcyaqbznmvl6hkdcf9LfCwBbRBCdU83l4GgZ7Re8H2Ra6Ov0RqumUZWgga-HhPp6CXkmYqqyOeoxv2dV59_lpWxhP6qaSUDIWOfUUw1Q3nMzh2J2FV3J-Ghm5EYbazOyg2LgQ\"" +
                 "}");
     }
 
     private JsonObject getVendorKey(){
         return new JsonObject("{\n" +
-                "            \"alg\": \"RS256\",\n" +
-                "                \"e\": \"AQAB\",\n" +
-                "                \"n\": \"gp4Kqosoo5GDhrWC180gyIug7KSee88M9SOSRTGSKgWrzk67g-88L5BoSo1faL2-8fYuEcbNVhc6XrT94lmxpMErKNMVnzBUPMZFqXMyzM71V3pfvgW9fyUO7TWTkR9i8I2OLp6HGwlOHJjeUJzXWdU6yp6FzB0gFi6PPrieiwSSnMbeAmXdYa2p90dpk8a8GzK0dGOWHntlPG8y7OZz1UvUJncT7B4HXFmdxlqNYj-O7dwZdvv0zbHp7hERzGn8DvvrAPNu8vyMYJrLEh0TFl9HRRa0q9xP6G7mcICv6LrTUaPjplRr2awPGC6rvzik9SWwYOor_oxnmVWmiKZsPQ\",\n" +
-                "                \"kty\": \"RSA\",\n" +
-                "                \"use\": \"enc\",\n" +
-                "                \"kid\": \"vendor1\"\n" +
-                "        }");
+                "           \"kty\":\"RSA\",\n" +
+                "           \"kid\":\"demoAssignmentVendor\",\n" +
+                "           \"n\":\"i9WApEijuYQYQNq4TyAXFjgBM8-5fI8rFEPhnU4o_oq6a3Eb_KpiourGZ1IExNDFGKlV-gcJE-8rsft3_EvNGH0faiwAxMkI-c3EmLPokBcGDr_7ekKRBNLhDmlgP01WIj38e5UjjqJliZU3-vTg8NeBqMLbVPtKBVrczSZORv3wCbGi6sm6F1oXcenywGLBIoKHrGS9EBU7DZJ3mVljQ8ewkomx_cX8nzn4RRx9mD60LBpi9oWlo5Tr9s_1t_mCrdx4cC1E_HS_ddGiH5Tzpoe4sAYnP-tasvhMKeuNV5hwgsn8T8typiJ27cGcoWlWOA9pXjDED0waunmYFdLrmQ\",\n" +
+                "           \"e\":\"AQAB\",\n" +
+                "           \"d\":\"irJeQpT6MExhchJ_tZvyyksKhkWHiZDH_fXGlqyr5K3dcixiwh6Ob2HHITwtFrqshGWRrcnEq00TXho7TLgy2hNhUYIL0SRGDuCWG5B3IFR14bNy0DWuecZhDFZg7OjcgmJRSJMJDbTuWaT0PaseYkSfirCbtJL7PIx_bcyM38QQ6xfwRCj3Zvj2EH6FxLfEMCp5OgPc4BoGaoGc-wVkNtxkK64KsJmoAkW-XORbHNCTn_Q6v4MPTpucWqn6wtZdXGoSoxbmQYGW8iDcLyyQ-H4u1bYv0Gxbt_MuvBBXCkPdTZaUyzzdvQxArPKKpSSapRE0I9pirFPR6D1_K-SvwQ\"\n" +
+                "         }");
     }
 }
