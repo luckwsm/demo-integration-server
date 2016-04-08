@@ -120,7 +120,7 @@ public class ServerDemoController extends DemoBaseController {
     private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData) throws JoseException {
         String signedAndEncryptedPayload = signAndEncrypt(royaltyEarningsData, options.getString("royaltyEarningsContentType"));
 
-        String contentDisposition = "Content-Disposition: form-data; name=\"royaltyEarnings\"; filename=\"" + options.getString("filename") + "\"\r\n";
+        String contentDisposition = "Content-Disposition: form-data; name=\"DistributionGrouping\"; filename=\"" + options.getString("filename") + "\"\r\n";
         addDataToBuffer(buffer, contentDisposition, signedAndEncryptedPayload);
     }
 

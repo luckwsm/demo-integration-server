@@ -79,7 +79,7 @@ public class DemoBaseController {
     }
 
     protected boolean shouldLoadRoyaltyEarningsCsv(JsonObject options) {
-        return options.getString("royaltyEarningsContentType").equals("text/csv") && !options.getString("filename").equals("");
+        return (options.getString("royaltyEarningsContentType").equals("text/csv") || options.getString("royaltyEarningsContentType").equals("application/zip") ) && !options.getString("filename").equals("");
     }
 
     protected String signAndEncrypt(byte[] payload, String cty) throws JoseException {
