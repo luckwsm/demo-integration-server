@@ -25,8 +25,8 @@ public class DemoBaseController {
     }
 
     protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx) {
-        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "devservices.lyricfinancial.com";
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host)).setSsl(true));
+        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "vendor-api-dev.lyricfinancial.com";
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 80).put("defaultHost", host)).setSsl(false));
 
         return httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());
@@ -40,11 +40,13 @@ public class DemoBaseController {
         });
     }
 
-    protected String getUri(String contentType) {
-        String uri = "/vendorAPI/v1/clients";
+    protected String getUri(String contentType, HttpServerRequest req) {
+        String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
+
+        String uri = String.format("/%s/vendorApi/v1/clients", vendorId);
 
         if(contentType.substring(0, 9).equals("multipart")){
-            uri = "/vendorAPI/v1/clients.form";
+            uri = String.format("/%s/vendorApi/v1/clients.form", vendorId);
         }
         return uri;
     }

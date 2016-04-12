@@ -27,18 +27,20 @@ public class TokenController {
     }
 
     public void getToken(RoutingContext routingContext) {
+        String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
 
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
-        claims.setIssuer("Lyric");  // who creates the token and signs it
+        claims.setIssuer(defaultVendorId);  // who creates the token and signs it
         claims.setAudience("widgetApi"); // to whom the token is intended to be sent
         claims.setExpirationTimeMinutesInTheFuture(60); // time when the token will expire (10 minutes from now)
         claims.setGeneratedJwtId(); // a unique identifier for the token
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
         claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
         claims.setSubject(vendorClientAccountId); // the subject/principal is whom the token is about
-        claims.setClaim("vendorId", System.getenv("DEFAULT_VENDOR_ID")); // additional claims/attributes about the subject can be added
+
+        claims.setClaim("vendorId", defaultVendorId); // additional claims/attributes about the subject can be added
 
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
         // In this example it is a JWS so we create a JsonWebSignature object.
