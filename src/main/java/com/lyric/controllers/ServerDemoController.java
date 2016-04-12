@@ -51,7 +51,7 @@ public class ServerDemoController extends DemoBaseController {
 
         String contentTypeFromOptions = options.getString("contentType");
 
-        String uri = getUri(contentTypeFromOptions);
+        String uri = getUri(contentTypeFromOptions, req);
         HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
 
 

@@ -34,7 +34,7 @@ public class ClientDemoController extends DemoBaseController {
             return;
         }
 
-        String uri = getUri(req.getHeader("content-type"));
+        String uri = getUri(req.getHeader("content-type"), req);
         HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
 
         setHeaders(cReq, req);
