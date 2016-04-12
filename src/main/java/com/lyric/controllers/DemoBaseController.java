@@ -43,10 +43,10 @@ public class DemoBaseController {
     protected String getUri(String contentType, HttpServerRequest req) {
         String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
 
-        String uri = String.format("/%s/vendorApi/v1/clients", vendorId);
+        String uri = String.format("/%s/v1/clients", vendorId);
 
         if(contentType.substring(0, 9).equals("multipart")){
-            uri = String.format("/%s/vendorApi/v1/clients.form", vendorId);
+            uri = String.format("/%s/v1/clients.form", vendorId);
         }
         return uri;
     }
