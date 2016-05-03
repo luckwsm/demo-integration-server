@@ -43,10 +43,16 @@ public class DemoBaseController {
 
 
             URL intermidiate = Resources.getResource("intermediate.pem");
+            logger.info("*******************INTERMEDIATE " + intermidiate);
             URL root = Resources.getResource("root.pem");
+            logger.info("*******************ROOT " + root);
+            Buffer intermediateBuffer = Buffer.buffer(Resources.toByteArray(intermidiate));
+            logger.info("*******************INTERMEDIATE BUFFER " + intermediateBuffer);
+            Buffer rootBuffer = Buffer.buffer(Resources.toByteArray(root));
+            logger.info("*******************ROOT BUFFER " + rootBuffer);
             pemOptions = new PemTrustOptions()
-                    .addCertValue(Buffer.buffer(Resources.toByteArray(intermidiate)))
-                    .addCertValue(Buffer.buffer(Resources.toByteArray(root)));
+                    .addCertValue(intermediateBuffer)
+                    .addCertValue(rootBuffer);
 
         } catch (IOException e) {
             e.printStackTrace();
