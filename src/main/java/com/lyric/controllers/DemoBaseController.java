@@ -3,6 +3,7 @@ package com.lyric.controllers;
 import com.google.common.io.Resources;
 import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -12,6 +13,9 @@ import io.vertx.core.net.PfxOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
+
+import java.io.IOException;
+import java.net.URL;
 
 /**
  * Created by amadden on 1/29/16.
@@ -29,13 +33,25 @@ public class DemoBaseController {
 
         String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
 
-        PfxOptions options = new PfxOptions()
-                .setPassword("lyric_changeme")
-                .setPath(Resources.getResource("certificate.pfx").getPath());
+        URL certificate = Resources.getResource("certificate.pfx");
+        PfxOptions options = new PfxOptions();
+        PemTrustOptions pemOptions = new PemTrustOptions();
+        try {
+            options
+                    .setPassword("lyric_changeme")
+                    .setValue(Buffer.buffer(Resources.toByteArray(certificate)));
 
-        PemTrustOptions pemOptions = new PemTrustOptions()
-                .addCertPath(Resources.getResource("intermediate.pem").getPath())
-                .addCertPath(Resources.getResource("root.pem").getPath());
+
+            URL intermidiate = Resources.getResource("intermediate.pem");
+            URL root = Resources.getResource("root.pem");
+            pemOptions = new PemTrustOptions()
+                    .addCertValue(Buffer.buffer(Resources.toByteArray(intermidiate)))
+                    .addCertValue(Buffer.buffer(Resources.toByteArray(root)));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host))
                 .setSsl(true)
