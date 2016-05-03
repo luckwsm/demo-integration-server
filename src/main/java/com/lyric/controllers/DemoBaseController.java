@@ -1,17 +1,17 @@
 package com.lyric.controllers;
 
+import com.google.common.io.Resources;
 import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.apache.commons.codec.binary.Base64;
+import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.PfxOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
-
-import java.io.UnsupportedEncodingException;
 
 /**
  * Created by amadden on 1/29/16.
@@ -25,14 +25,29 @@ public class DemoBaseController {
     }
 
     protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx) {
-        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "vendor-api-dev.lyricfinancial.com";
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 80).put("defaultHost", host)).setSsl(false));
+        //String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
+
+        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
+
+        PfxOptions options = new PfxOptions()
+                .setPassword("lyric_changeme")
+                .setPath(Resources.getResource("certificate.pfx").getPath());
+
+        PemTrustOptions pemOptions = new PemTrustOptions()
+                .addCertPath(Resources.getResource("intermediate.pem").getPath())
+                .addCertPath(Resources.getResource("root.pem").getPath());
+
+        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host))
+                .setSsl(true)
+                .setPemTrustOptions(pemOptions)
+                .setPfxKeyCertOptions(options)
+        );
 
         return httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());
             req.response().setStatusCode(cRes.statusCode());
             req.response().headers().setAll(cRes.headers());
-//            req.response().setChunked(true);
+
             cRes.bodyHandler(data -> {
                 logger.debug("Proxying response body:" + data);
                 req.response().end(data);
@@ -41,12 +56,11 @@ public class DemoBaseController {
     }
 
     protected String getUri(String contentType, HttpServerRequest req) {
-        String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
 
-        String uri = String.format("/%s/v1/clients", vendorId);
+        String uri = "/v1/clients";
 
         if(contentType.substring(0, 9).equals("multipart")){
-            uri = String.format("/%s/v1/clients.form", vendorId);
+            uri = "/v1/clients.form";
         }
         return uri;
     }

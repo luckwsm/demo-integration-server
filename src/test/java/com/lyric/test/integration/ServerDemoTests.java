@@ -1,5 +1,6 @@
 package com.lyric.test.integration;
 
+import com.google.common.io.Resources;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonObject;
@@ -9,6 +10,13 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.net.URL;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
 /**
  * Created by amadden on 1/29/16.
  */
@@ -17,6 +25,7 @@ public class ServerDemoTests extends TestsBase{
 
     @Test
     public void jsonCallWithCsvShouldReturnAccessToken(TestContext context){
+//        System.setProperty("javax.net.debug", "ssl");
 
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
@@ -59,5 +68,16 @@ public class ServerDemoTests extends TestsBase{
                 .put("royaltyEarningsContentType", "text/csv")
                 .put("filename", ""));
         request.end(options.toString());
+    }
+
+    @Test
+    public void testKeyStore(TestContext context) throws KeyStoreException {
+        KeyStore ks = KeyStore.getInstance("pkcs12");
+        URL resource = Resources.getResource("certificate.pfx");
+        try {
+            ks.load(resource.openStream(), "lyric_changeme".toCharArray());
+        } catch (IOException | NoSuchAlgorithmException | CertificateException e) {
+            e.printStackTrace();
+        }
     }
 }
