@@ -33,31 +33,21 @@ public class DemoBaseController {
 
         String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
 
-        URL certificate = Resources.getResource("certificate.pfx");
+
         PfxOptions options = new PfxOptions();
         PemTrustOptions pemOptions = new PemTrustOptions();
-        try {
-            options
-                    .setPassword("lyric_changeme")
-                    .setValue(Buffer.buffer(Resources.toByteArray(certificate)));
 
+        Buffer certificate = getCert("certificate.pfx");
+        Buffer intermediateCertificate = getCert("intermediate.pem");
+        Buffer rootCertificate = getCert("root.pem");
 
-            URL intermidiate = Resources.getResource("intermediate.pem");
-            logger.info("*******************INTERMEDIATE " + intermidiate);
-            URL root = Resources.getResource("root.pem");
-            logger.info("*******************ROOT " + root);
-            Buffer intermediateBuffer = Buffer.buffer(Resources.toByteArray(intermidiate));
-            logger.info("*******************INTERMEDIATE BUFFER " + intermediateBuffer);
-            Buffer rootBuffer = Buffer.buffer(Resources.toByteArray(root));
-            logger.info("*******************ROOT BUFFER " + rootBuffer);
-            pemOptions = new PemTrustOptions()
-                    .addCertValue(intermediateBuffer)
-                    .addCertValue(rootBuffer);
+        options
+                .setPassword("lyric_changeme")
+                .setValue(certificate);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        pemOptions
+                .addCertValue(intermediateCertificate)
+                .addCertValue(rootCertificate);
 
         HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host))
                 .setSsl(true)
@@ -75,6 +65,16 @@ public class DemoBaseController {
                 req.response().end(data);
             });
         });
+    }
+
+    private Buffer getCert(String fileName){
+        try {
+            URL file = Resources.getResource(fileName);
+            return Buffer.buffer(Resources.toByteArray(file));
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     protected String getUri(String contentType, HttpServerRequest req) {
