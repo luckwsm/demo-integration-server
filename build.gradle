@@ -53,6 +53,7 @@ test {
     environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'demo-dev.lyricfinancial.com'
     environment 'DEFAULT_JOSE_FLAG', true
     environment 'DEFAULT_SSL_FLAG', true
+    environment 'DEFAULT_ASSIGNMENT_JOSE_FLAG', true
 }
 
 shadowJar {

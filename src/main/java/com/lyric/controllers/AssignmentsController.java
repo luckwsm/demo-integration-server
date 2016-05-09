@@ -36,8 +36,29 @@ public class AssignmentsController {
         HttpServerRequest request = routingContext.request();
         String vendorClientAccountId = request.getParam("id");
         final HttpServerResponse response = routingContext.response();
+
+        boolean useJose = Boolean.parseBoolean(System.getenv("DEFAULT_ASSIGNMENT_JOSE_FLAG"));
+        final String body = routingContext.getBodyAsString();
+
+        if(useJose){
+            handleEncryptedRequest(vendorClientAccountId, response, body);
+            return;
+        }
+
+        JsonObject assignment = new JsonObject(body);
+        assignmentService.assign(vendorClientAccountId, assignment);
+
+        JsonObject responseObject = new JsonObject().put("memberToken", assignment.getString("memberToken"))
+                .put("vendorClientAccountId", assignment.getString("vendorClientAccountId"));
+
+        response.putHeader("content-type", "application/json").end(responseObject.toString());
+
+    }
+
+    private void handleEncryptedRequest(String vendorClientAccountId, HttpServerResponse response, String body) {
         try {
-            JsonWebEncryption jwe = securityService.decryptPayload(routingContext.getBodyAsString());
+
+            JsonWebEncryption jwe = securityService.decryptPayload(body);
 
             if(!securityService.isValidSignature(jwe)){
                 logger.error("Signature is not Verified");
