@@ -105,7 +105,10 @@ public class DemoBaseController {
         req.headers().remove(HttpHeaders.HOST);
         cReq.headers().setAll(req.headers());
 
-        cReq.putHeader("content-type", "application/jose");
+        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+        if(useJose){
+            cReq.putHeader("content-type", "application/jose");
+        }
 
         setAuthorizationHeaders(cReq, req);
     }
