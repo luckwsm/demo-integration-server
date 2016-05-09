@@ -84,11 +84,16 @@ public class ServerDemoController extends DemoBaseController {
 //            }
             body.appendString(client.toString());
 
-            try {
-                body = Buffer.buffer(signAndEncrypt(body.getBytes(), contentTypeFromOptions));
-            } catch (JoseException e) {
-                thowSignEncryptError(req);
+            final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+            if(useJose){
+                try {
+                    body = Buffer.buffer(signAndEncrypt(body.getBytes(), contentTypeFromOptions));
+                } catch (JoseException e) {
+                    thowSignEncryptError(req);
+                }
             }
+
+
         }
 
         cReq.setChunked(true);

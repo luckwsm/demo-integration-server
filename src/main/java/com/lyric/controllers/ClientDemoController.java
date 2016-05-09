@@ -42,14 +42,17 @@ public class ClientDemoController extends DemoBaseController {
 
         Buffer payload = routingContext.getBody();
 
-        try {
-            String signedAndEncryptedPayload = signAndEncrypt(payload.getBytes(), req.getHeader("content-type"));
-            cReq.write(signedAndEncryptedPayload);
+        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+        if(useJose) {
 
-        } catch (JoseException e) {
-            thowSignEncryptError(req);
+            try {
+                payload = Buffer.buffer(signAndEncrypt(payload.getBytes(), req.getHeader("content-type")));
+
+            } catch (JoseException e) {
+                thowSignEncryptError(req);
+            }
         }
 
-        cReq.end();
+        cReq.end(payload);
     }
 }

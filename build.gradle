@@ -51,6 +51,8 @@ test {
     environment 'DEFAULT_VENDOR_ID', 'demo'
     environment 'DEFAULT_AUTH_TOKEN', 'eyJraWQiOiJkZW1vQXBpTHlyaWMiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJMeXJpYyIsImF1ZCI6InZlbmRvckFwaSIsImp0aSI6Ii1nTHF3NzFrNEVLWVhIOUdQNEhYWmciLCJleHAiOjQ2MTU4OTcwMDEsImlhdCI6MTQ2MjI5NzAwMSwibmJmIjoxNDYyMjk2ODgxLCJzdWIiOiJkZW1vIiwidmVuZG9ySWQiOiJkZW1vIn0.JtM-jMAcfhlqD2DawPUBvx2ETVqartYA2yfmppib9rFSmxHHkRzncm6E4IM5hbz4yoFNt3LDmFYiuG21-pSMn3Vm3v2gUi9SKAxe3BUvaWWdKZzFUss3l3UB7h0ZCoGJiiNPbqVjXRLqqRfnP4W6r2c6TKjGmi1COINbLzWoQWgwknQ-1l-aZ6Efe_anuxb6OtGsNp_1B1LstRj-hrs6p_YLdAtvdmE5kMMfkZPSGBpgBvkf9xNM_aJGulgrVsOyMvm1EhSykH3AwltyI7iQEhvEN2Ttz4mKnUH7s79FaxDNCko5lelgQf2Tt89tAaZaoTopG7hJNk6LuEjJwZg7IA'
     environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'demo-dev.lyricfinancial.com'
+    environment 'DEFAULT_JOSE_FLAG', true
+    environment 'DEFAULT_SSL_FLAG', true
 }
 
 shadowJar {

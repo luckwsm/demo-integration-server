@@ -29,42 +29,52 @@ public class DemoBaseController {
     }
 
     protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx) {
-        //String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
 
-        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
-
-
-        PfxOptions options = new PfxOptions();
-        PemTrustOptions pemOptions = new PemTrustOptions();
-
-        Buffer certificate = getCert("certificate.pfx");
-        Buffer intermediateCertificate = getCert("intermediate.pem");
-        Buffer rootCertificate = getCert("root.pem");
-
-        options
-                .setPassword("lyric_changeme")
-                .setValue(certificate);
-
-        pemOptions
-                .addCertValue(intermediateCertificate)
-                .addCertValue(rootCertificate);
-
-        HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions(new JsonObject().put("defaultPort", 443).put("defaultHost", host))
-                .setSsl(true)
-                .setPemTrustOptions(pemOptions)
-                .setPfxKeyCertOptions(options)
-        );
+        HttpClient httpClient = getHttpClient(req, vertx);
 
         return httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());
             req.response().setStatusCode(cRes.statusCode());
             req.response().headers().setAll(cRes.headers());
+            req.response().setChunked(true);
 
             cRes.bodyHandler(data -> {
                 logger.debug("Proxying response body:" + data);
                 req.response().end(data);
             });
         });
+    }
+
+    private HttpClient getHttpClient(HttpServerRequest request, Vertx vertx) {
+        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
+        boolean isSslOn = Boolean.parseBoolean(getParam(request, "ssl", System.getenv("DEFAULT_SSL_FLAG")));
+        int defaultPort = isSslOn ? 443 : 80;
+
+        HttpClientOptions options = new HttpClientOptions(new JsonObject().put("defaultPort", defaultPort).put("defaultHost", host)).setSsl(isSslOn);
+
+        if(isSslOn){
+            PfxOptions pfkKeyCertOptions = new PfxOptions();
+            PemTrustOptions pemOptions = new PemTrustOptions();
+
+            Buffer certificate = getCert("certificate.pfx");
+            Buffer intermediateCertificate = getCert("intermediate.pem");
+            Buffer rootCertificate = getCert("root.pem");
+
+            pfkKeyCertOptions
+                    .setPassword("lyric_changeme")
+                    .setValue(certificate);
+
+            pemOptions
+                    .addCertValue(intermediateCertificate)
+                    .addCertValue(rootCertificate)
+            ;
+
+            options
+                    .setPemTrustOptions(pemOptions)
+                    .setPfxKeyCertOptions(pfkKeyCertOptions);
+        }
+
+        return vertx.createHttpClient(options);
     }
 
     private Buffer getCert(String fileName){
