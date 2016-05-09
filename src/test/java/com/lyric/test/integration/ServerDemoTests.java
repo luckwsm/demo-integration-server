@@ -66,7 +66,7 @@ public class ServerDemoTests extends TestsBase{
         JsonObject options = new JsonObject().put("options", new JsonObject()
                 .put("contentType", "multipart/form-data")
                 .put("royaltyEarningsContentType", "text/csv")
-                .put("filename", ""));
+                .put("filename", "943344.csv"));
         request.end(options.toString());
     }
 

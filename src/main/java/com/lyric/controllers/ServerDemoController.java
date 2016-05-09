@@ -10,12 +10,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
-import org.jose4j.base64url.internal.apache.commons.codec.binary.Base64;
-import org.jose4j.jwk.RsaJsonWebKey;
-import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Created by amadden on 1/29/16.
@@ -33,6 +31,7 @@ public class ServerDemoController extends DemoBaseController {
 
     public void create(RoutingContext routingContext){
         HttpServerRequest req = routingContext.request();
+        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
 
         String clientId = getParam(req, "id", null);
 
@@ -64,7 +63,7 @@ public class ServerDemoController extends DemoBaseController {
 
 
             try {
-                generateMultipart(body, client, options);
+                generateMultipart(body, client, options, useJose);
 
             } catch (JoseException e) {
                 thowSignEncryptError(req);
@@ -84,7 +83,7 @@ public class ServerDemoController extends DemoBaseController {
 //            }
             body.appendString(client.toString());
 
-            final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+
             if(useJose){
                 try {
                     body = Buffer.buffer(signAndEncrypt(body.getBytes(), contentTypeFromOptions));
@@ -101,7 +100,7 @@ public class ServerDemoController extends DemoBaseController {
         cReq.end(body);
     }
 
-    private void generateMultipart(Buffer body, JsonObject client, JsonObject options) throws JoseException {
+    private void generateMultipart(Buffer body, JsonObject client, JsonObject options, boolean useJose) throws JoseException {
         if(shouldLoadRoyaltyEarningsCsv(options)){
             byte[] csvData = new byte[0];
             try {
@@ -109,30 +108,41 @@ public class ServerDemoController extends DemoBaseController {
             } catch (IOException e) {
                 logger.error(String.format("Error getting csv data: %s", e.getMessage()));
             }
-            addRoyaltyEarningsToBuffer(body, options, csvData);
+            addRoyaltyEarningsToBuffer(body, options, csvData, useJose);
         }
-        addClientToBuffer(client, body);
+        addClientToBuffer(client, body, useJose);
         body.appendString("--" + BOUNDARY + "--\r\n");
     }
 
-    private void addClientToBuffer(JsonObject client, Buffer buffer) throws JoseException {
-        String signedAndEncryptedPayload = signAndEncrypt(client.toString().getBytes(), "application/json");
+    private void addClientToBuffer(JsonObject client, Buffer buffer, boolean useJose) throws JoseException {
+        String payload = client.toString();
+        String contentType = "application/json";
+        if(useJose){
+            payload = signAndEncrypt(client.toString().getBytes(),  "application/json");
+            contentType = "application/jose";
+        }
 
         String contentDisposition = "Content-Disposition: form-data; name=\"UserProfile\"\r\n";
-        addDataToBuffer(buffer, contentDisposition, signedAndEncryptedPayload);
+        addDataToBuffer(buffer, contentDisposition, payload, contentType);
     }
 
-    private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData) throws JoseException {
-        String signedAndEncryptedPayload = signAndEncrypt(royaltyEarningsData, options.getString("royaltyEarningsContentType"));
+    private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData, boolean useJose) throws JoseException {
+        final String royaltyEarningsContentType = options.getString("royaltyEarningsContentType");
+        String payload = Arrays.toString(royaltyEarningsData);
+        String contentType = "application/json";
+        if(useJose) {
+            payload = signAndEncrypt(royaltyEarningsData, royaltyEarningsContentType);
+            contentType = "application/jose";
+        }
 
         String contentDisposition = "Content-Disposition: form-data; name=\"DistributionGrouping\"; filename=\"" + options.getString("filename") + "\"\r\n";
-        addDataToBuffer(buffer, contentDisposition, signedAndEncryptedPayload);
+        addDataToBuffer(buffer, contentDisposition, payload, contentType);
     }
 
-    private void addDataToBuffer(Buffer buffer, String contentDisposition, String payload){
+    private void addDataToBuffer(Buffer buffer, String contentDisposition, String payload, String contentType){
         buffer.appendString("--" + BOUNDARY + "\r\n");
         buffer.appendString(contentDisposition);
-        buffer.appendString("Content-Type: application/jose\r\n");
+        buffer.appendString("Content-Type: " + contentType + "\r\n");
         buffer.appendString("\r\n");
         buffer.appendString(payload);
         buffer.appendString("\r\n");
