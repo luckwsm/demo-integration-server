@@ -128,7 +128,8 @@ public class ServerDemoController extends DemoBaseController {
 
     private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData, boolean useJose) throws JoseException {
         final String royaltyEarningsContentType = options.getString("royaltyEarningsContentType");
-        String payload = Arrays.toString(royaltyEarningsData);
+        //String payload = royaltyEarningsData.toString();
+        String payload = null;
         String contentType = "application/json";
         if(useJose) {
             payload = signAndEncrypt(royaltyEarningsData, royaltyEarningsContentType);
