@@ -12,9 +12,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import org.jose4j.lang.JoseException;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 /**
  * Created by amadden on 1/29/16.
  */
@@ -22,7 +19,7 @@ public class ServerDemoController extends DemoBaseController {
     private final Vertx vertx;
 
     Logger logger = LoggerFactory.getLogger(ServerDemoController.class.getName());
-    private static String BOUNDARY = "----LyricBoundaryAL0lfjW6DJtKiwkd";
+
 
     public ServerDemoController(Vertx vertx, SecurityService securityService) {
         super(securityService);
@@ -50,24 +47,13 @@ public class ServerDemoController extends DemoBaseController {
 
         String contentTypeFromOptions = options.getString("contentType");
 
-        String uri = getUri(contentTypeFromOptions, req);
+        String uri = getUri(contentTypeFromOptions);
         HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
 
 
 
         if(contentTypeFromOptions.equals("multipart/form-data")){
-            cReq.putHeader("content-type", contentTypeFromOptions);
-            contentTypeFromOptions = String.format("%s;boundary=%s", contentTypeFromOptions, BOUNDARY);
-            setHeaders(cReq, req);
-            cReq.putHeader("content-type", contentTypeFromOptions);
-
-
-            try {
-                generateMultipart(body, client, options, useJose);
-
-            } catch (JoseException e) {
-                thowSignEncryptError(req);
-            }
+            body = processMultipart(req, options, client, cReq);
         }
         else{
             setHeaders(cReq, req);
@@ -95,57 +81,12 @@ public class ServerDemoController extends DemoBaseController {
 
         }
 
-        cReq.setChunked(true);
+
 
         cReq.end(body);
     }
 
-    private void generateMultipart(Buffer body, JsonObject client, JsonObject options, boolean useJose) throws JoseException {
-        if(shouldLoadRoyaltyEarningsCsv(options)){
-            byte[] csvData = new byte[0];
-            try {
-                csvData = ClientRepository.getRoyaltyEarnings(options.getString("filename"));
-            } catch (IOException e) {
-                logger.error(String.format("Error getting csv data: %s", e.getMessage()));
-            }
-            addRoyaltyEarningsToBuffer(body, options, csvData, useJose);
-        }
-        addClientToBuffer(client, body, useJose);
-        body.appendString("--" + BOUNDARY + "--\r\n");
-    }
 
-    private void addClientToBuffer(JsonObject client, Buffer buffer, boolean useJose) throws JoseException {
-        String payload = client.toString();
-        String contentType = "application/json";
-        if(useJose){
-            payload = signAndEncrypt(client.toString().getBytes(),  "application/json");
-            contentType = "application/jose";
-        }
 
-        String contentDisposition = "Content-Disposition: form-data; name=\"UserProfile\"\r\n";
-        addDataToBuffer(buffer, contentDisposition, payload, contentType);
-    }
 
-    private void addRoyaltyEarningsToBuffer(Buffer buffer, JsonObject options, byte[] royaltyEarningsData, boolean useJose) throws JoseException {
-        final String royaltyEarningsContentType = options.getString("royaltyEarningsContentType");
-        //String payload = royaltyEarningsData.toString();
-        String payload = null;
-        String contentType = "application/json";
-        if(useJose) {
-            payload = signAndEncrypt(royaltyEarningsData, royaltyEarningsContentType);
-            contentType = "application/jose";
-        }
-
-        String contentDisposition = "Content-Disposition: form-data; name=\"DistributionGrouping\"; filename=\"" + options.getString("filename") + "\"\r\n";
-        addDataToBuffer(buffer, contentDisposition, payload, contentType);
-    }
-
-    private void addDataToBuffer(Buffer buffer, String contentDisposition, String payload, String contentType){
-        buffer.appendString("--" + BOUNDARY + "\r\n");
-        buffer.appendString(contentDisposition);
-        buffer.appendString("Content-Type: " + contentType + "\r\n");
-        buffer.appendString("\r\n");
-        buffer.appendString(payload);
-        buffer.appendString("\r\n");
-    }
 }

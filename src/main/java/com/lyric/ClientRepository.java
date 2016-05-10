@@ -1,10 +1,18 @@
 package com.lyric;
 
-import com.google.common.base.Charsets;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.util.IOUtils;
 import com.google.common.io.Resources;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Random;
 
@@ -12,7 +20,7 @@ import java.util.Random;
  * Created by amadden on 1/20/16.
  */
 public class ClientRepository {
-
+    static Logger logger = LoggerFactory.getLogger(ClientRepository.class.getName());
     /* This gets a unique user every time for testing purposes.  This would really be a lookup from
     your database.
      */
@@ -68,8 +76,44 @@ public class ClientRepository {
                 ;
     }
 
-    public static byte[] getRoyaltyEarnings(String filename) throws IOException {
-        final URL resource = Resources.getResource(filename);
-        return Resources.toByteArray(resource);
+    public static JsonObject getRoyaltyEarnings(JsonObject fileData, JsonObject options, JsonObject client) throws IOException {
+        final String royaltyEarningsContentType = options.getString("royaltyEarningsContentType");
+        String fileName = options.getString("filename");
+        if(shouldLoadFromFileSystem(royaltyEarningsContentType, fileName)){
+            final URL resource = Resources.getResource(fileName);
+
+            fileData
+                    .put("data", Resources.toByteArray(resource))
+                    .put("filename", fileName)
+                    .put("contentType", royaltyEarningsContentType)
+            ;
+            return fileData;
+        }
+
+        try {
+
+            AmazonS3 s3Client = new AmazonS3Client();
+            fileName = client.getJsonObject("vendorAccount").getString("vendorClientAccountId");
+            logger.info("FILE NOT ON FILESYSTEM, CHECKING S3 FILE NAME: " + fileName);
+            S3Object object = s3Client.getObject(new GetObjectRequest("demo-earnings", fileName));
+            InputStream objectData = object.getObjectContent();
+
+            final byte[] bytes = IOUtils.toByteArray(objectData);
+
+            fileData.put("contentType", object.getObjectMetadata().getContentType());
+            fileData.put("filename", fileName);
+            fileData.put("data", bytes);
+            objectData.close();
+        }
+        catch(AmazonServiceException e){
+            logger.error("S3 ERROR: " + e.getErrorMessage(), e);
+            return fileData;
+        }
+
+        return fileData;
+    }
+
+    private static boolean shouldLoadFromFileSystem(String royaltyEarningsContentType, String fileName) {
+        return royaltyEarningsContentType != null && (royaltyEarningsContentType.equals("text/csv") || royaltyEarningsContentType.equals("application/zip") ) && !fileName.equals("");
     }
 }

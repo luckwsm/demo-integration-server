@@ -54,6 +54,7 @@ public class ServerDemoTests extends TestsBase{
         Async async = context.async();
 
         int random = getRandomNumber();
+        //int random = 4532;
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_server", resp -> {
             context.assertEquals(201, resp.statusCode());
@@ -66,7 +67,7 @@ public class ServerDemoTests extends TestsBase{
         JsonObject options = new JsonObject().put("options", new JsonObject()
                 .put("contentType", "multipart/form-data")
                 .put("royaltyEarningsContentType", "text/csv")
-                .put("filename", "943344.csv"));
+                .put("filename", "amytest.csv"));
         request.end(options.toString());
     }
 

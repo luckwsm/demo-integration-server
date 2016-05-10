@@ -5,6 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
@@ -34,25 +35,18 @@ public class ClientDemoController extends DemoBaseController {
             return;
         }
 
-        String uri = getUri(req.getHeader("content-type"), req);
+        String uri = getUri("multipart/form-data");
         HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
 
         setHeaders(cReq, req);
         cReq.setChunked(true);
 
-        Buffer payload = routingContext.getBody();
+        JsonObject client = routingContext.getBodyAsJson();
 
-        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
-        if(useJose) {
 
-            try {
-                payload = Buffer.buffer(signAndEncrypt(payload.getBytes(), req.getHeader("content-type")));
+        Buffer body = processMultipart(req, new JsonObject(), client, cReq);
 
-            } catch (JoseException e) {
-                thowSignEncryptError(req);
-            }
-        }
-
-        cReq.end(payload);
+        cReq.end(body);
     }
+
 }

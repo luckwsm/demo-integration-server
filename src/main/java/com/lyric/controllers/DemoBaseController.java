@@ -1,6 +1,7 @@
 package com.lyric.controllers;
 
 import com.google.common.io.Resources;
+import com.lyric.ClientRepository;
 import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -23,6 +24,7 @@ import java.net.URL;
 public class DemoBaseController {
     Logger logger = LoggerFactory.getLogger(DemoBaseController.class.getName());
     private final SecurityService securityService;
+    protected static String BOUNDARY = "----LyricBoundaryAL0lfjW6DJtKiwkd";
 
     public DemoBaseController(SecurityService securityService) {
         this.securityService = securityService;
@@ -87,7 +89,7 @@ public class DemoBaseController {
         }
     }
 
-    protected String getUri(String contentType, HttpServerRequest req) {
+    protected String getUri(String contentType) {
 
         String uri = "/v1/clients";
 
@@ -129,10 +131,6 @@ public class DemoBaseController {
         return param;
     }
 
-    protected boolean shouldLoadRoyaltyEarningsCsv(JsonObject options) {
-        return (options.getString("royaltyEarningsContentType").equals("text/csv") || options.getString("royaltyEarningsContentType").equals("application/zip") ) && !options.getString("filename").equals("");
-    }
-
     protected String signAndEncrypt(byte[] payload, String cty) throws JoseException {
         JsonWebSignature jws = securityService.createSignature(payload);
         return securityService.encryptPayload(jws, payload, cty);
@@ -141,6 +139,62 @@ public class DemoBaseController {
     protected void thowSignEncryptError(HttpServerRequest req) {
         req.response().setStatusMessage("Could not sign and encrypt payload.");
         req.response().setStatusCode(500).end();
+    }
+
+    protected Buffer processMultipart(HttpServerRequest req, JsonObject options, JsonObject client, HttpClientRequest cReq) {
+
+
+        setHeaders(cReq, req);
+        String contentType = String.format("multipart/form-data;boundary=%s", BOUNDARY);
+        cReq.putHeader("content-type", contentType);
+
+        Buffer body = generateMultipart(req, client, options);
+
+
+        cReq.setChunked(true);
+
+        return body;
+    }
+
+    private Buffer generateMultipart(HttpServerRequest req, JsonObject client, JsonObject options) {
+        Buffer body = Buffer.buffer();
+
+        JsonObject fileData = new JsonObject();
+        try {
+            ClientRepository.getRoyaltyEarnings(fileData, options, client);
+        } catch (IOException e) {
+            logger.error(String.format("Error getting csv data: %s", e.getMessage()));
+        }
+        if(fileData.getBinary("data") != null){
+            String contentDisposition = "Content-Disposition: form-data; name=\"DistributionGrouping\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
+            addDataToBuffer(req, body, contentDisposition, fileData.getBinary("data"), fileData.getString("contentType"));
+        }
+
+        String contentDisposition = "Content-Disposition: form-data; name=\"UserProfile\"\r\n";
+        addDataToBuffer(req, body, contentDisposition, client.toString().getBytes(), "application/json");
+        body.appendString("--" + BOUNDARY + "--\r\n");
+
+        return body;
+    }
+
+    private void addDataToBuffer(HttpServerRequest req, Buffer buffer, String contentDisposition, byte[] content, String contentType) {
+        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+        String encryptedData = null;
+        if(useJose) {
+            try {
+                encryptedData = signAndEncrypt(content, contentType);
+            } catch (JoseException e) {
+                thowSignEncryptError(req);
+            }
+            contentType = "application/jose";
+        }
+
+        buffer.appendString("--" + BOUNDARY + "\r\n");
+        buffer.appendString(contentDisposition);
+        buffer.appendString("Content-Type: " + contentType + "\r\n");
+        buffer.appendString("\r\n");
+        buffer.appendString(encryptedData);
+        buffer.appendString("\r\n");
     }
 
 }
