@@ -180,6 +180,7 @@ public class DemoBaseController {
 
     private void addDataToBuffer(HttpServerRequest req, Buffer buffer, String contentDisposition, byte[] content, String contentType) {
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+        logger.info("**************USE JOSE: " + useJose);
         String encryptedData = null;
         if(useJose) {
             try {
