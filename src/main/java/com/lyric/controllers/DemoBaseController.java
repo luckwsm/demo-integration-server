@@ -58,9 +58,10 @@ public class DemoBaseController {
             PfxOptions pfkKeyCertOptions = new PfxOptions();
             PemTrustOptions pemOptions = new PemTrustOptions();
 
-            Buffer certificate = getCert("certificate.pfx");
-            Buffer intermediateCertificate = getCert("intermediate.pem");
-            Buffer rootCertificate = getCert("root.pem");
+            final String env = System.getenv("API_ENV");
+            Buffer certificate = getCert(String.format("%s/certificate.pfx", env));
+            Buffer intermediateCertificate = getCert(String.format("%s/intermediate.pem", env));
+            Buffer rootCertificate = getCert(String.format("%s/root.pem", env));
 
             pfkKeyCertOptions
                     .setPassword("lyric_changeme")

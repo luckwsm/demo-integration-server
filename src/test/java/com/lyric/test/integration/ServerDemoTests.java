@@ -74,7 +74,7 @@ public class ServerDemoTests extends TestsBase{
     @Test
     public void testKeyStore(TestContext context) throws KeyStoreException {
         KeyStore ks = KeyStore.getInstance("pkcs12");
-        URL resource = Resources.getResource("certificate.pfx");
+        URL resource = Resources.getResource("dev/certificate.pfx");
         try {
             ks.load(resource.openStream(), "lyric_changeme".toCharArray());
         } catch (IOException | NoSuchAlgorithmException | CertificateException e) {

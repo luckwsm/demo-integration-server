@@ -13,9 +13,14 @@ import io.vertx.core.json.JsonObject;
 public class Start extends AbstractVerticle {
 
     public void start(final Future<Void> startedResult) {
+        final ConfigLoader configLoader = new ConfigLoader(config())
+                .withConfigFile("application")
+                .withEnvOverrideKey("API_ENV");
+
+        final JsonObject config = configLoader.buildConfig();
 
         final DeploymentOptions options = new DeploymentOptions();
-        options.setConfig(new JsonObject(ConfigFactory.load().root().render(ConfigRenderOptions.concise())));
+        options.setConfig(config);
 
         vertx.deployVerticle(ApiServer.class.getName(), options, deployId -> {
             if (deployId.failed()) {
