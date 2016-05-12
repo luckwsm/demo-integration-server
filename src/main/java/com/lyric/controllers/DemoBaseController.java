@@ -44,7 +44,7 @@ public class DemoBaseController {
                 logger.debug("Proxying response body:" + data);
                 req.response().end(data);
             });
-        });
+        }).setChunked(true);
     }
 
     private HttpClient getHttpClient(HttpServerRequest request, Vertx vertx) {
@@ -151,9 +151,6 @@ public class DemoBaseController {
 
         Buffer body = generateMultipart(req, client, options);
 
-
-        cReq.setChunked(true);
-
         return body;
     }
 
@@ -180,7 +177,7 @@ public class DemoBaseController {
 
     private void addDataToBuffer(HttpServerRequest req, Buffer buffer, String contentDisposition, byte[] content, String contentType) {
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
-        logger.info("**************USE JOSE: " + useJose);
+
         String encryptedData = null;
         if(useJose) {
             try {

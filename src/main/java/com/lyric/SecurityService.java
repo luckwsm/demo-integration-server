@@ -37,7 +37,7 @@ public class SecurityService {
         // The JWT is signed using the private key
         jws.setKey(localRsaJsonWebKey.getRsaPrivateKey());
 
-        jws.setContentTypeHeaderValue("json");
+        jws.setContentTypeHeaderValue("text/plain");
 
         jws.setKeyIdHeaderValue(localRsaJsonWebKey.getKeyId());
 
@@ -59,7 +59,7 @@ public class SecurityService {
         jwe.setPlaintext(payload);
 
         // Set the "alg" header, which indicates the key management mode for this JWE.
-        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA_OAEP_256);
+        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA1_5);
 
         // Set the "enc" header, which indicates the content encryption algorithm to be used.
         jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);

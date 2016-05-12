@@ -43,17 +43,15 @@ public class ServerDemoController extends DemoBaseController {
         /* Look up client data from your system */
         JsonObject client = ClientRepository.findClient(clientId, false);
 
-        Buffer body = Buffer.buffer();
-
         String contentTypeFromOptions = options.getString("contentType");
 
         String uri = getUri(contentTypeFromOptions);
         HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
 
 
-
         if(contentTypeFromOptions.equals("multipart/form-data")){
-            body = processMultipart(req, options, client, cReq);
+            Buffer body = processMultipart(req, options, client, cReq);
+            cReq.end(body);
         }
         else{
             setHeaders(cReq, req);
@@ -67,23 +65,22 @@ public class ServerDemoController extends DemoBaseController {
 //                String encodedCsvData = Base64.encodeBase64String(csvData);
 //                client.put("royaltyEarnings", encodedCsvData);
 //            }
-            body.appendString(client.toString());
-
+            String payload = client.toString();
 
             if(useJose){
                 try {
-                    body = Buffer.buffer(signAndEncrypt(body.getBytes(), contentTypeFromOptions));
+                    payload = signAndEncrypt(payload.getBytes(), contentTypeFromOptions);
                 } catch (JoseException e) {
                     thowSignEncryptError(req);
                 }
             }
 
-
+            cReq.end(payload);
         }
 
 
 
-        cReq.end(body);
+
     }
 
 
