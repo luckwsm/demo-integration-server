@@ -9,4 +9,5 @@ dev:
       DEFAULT_JOSE_FLAG: 'true'
       DEFAULT_SSL_FLAG: 'true'
       DEFAULT_ASSIGNMENT_JOSE_FLAG: 'true'
+      API_ENV: dev
   build: .

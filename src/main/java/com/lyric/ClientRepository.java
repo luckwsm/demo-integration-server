@@ -68,12 +68,15 @@ public class ClientRepository {
             vendorAccount.put("memberToken", "1e4bc0a6-043e-4c3e-b067-d5949f310112");
         }
 
-        return new JsonObject()
+        JsonObject userProfile = new JsonObject()
                 .put("user", user)
                 .put("vendorAccount", vendorAccount)
                 .put("taxInfo", taxInfo)
                 .put("bankInfo", bankInfo)
                 ;
+
+        return new JsonObject()
+                .put("userProfile", userProfile);
     }
 
     public static JsonObject getRoyaltyEarnings(JsonObject fileData, JsonObject options, JsonObject client) throws IOException {
@@ -93,7 +96,7 @@ public class ClientRepository {
         try {
 
             AmazonS3 s3Client = new AmazonS3Client();
-            fileName = client.getJsonObject("vendorAccount").getString("vendorClientAccountId");
+            fileName = client.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("vendorClientAccountId");
             logger.info("FILE NOT ON FILESYSTEM, CHECKING S3 FILE NAME: " + fileName);
             S3Object object = s3Client.getObject(new GetObjectRequest("demo-earnings", fileName));
             InputStream objectData = object.getObjectContent();
