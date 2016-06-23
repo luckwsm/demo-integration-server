@@ -164,8 +164,9 @@ public class DemoBaseController {
             logger.error(String.format("Error getting csv data: %s", e.getMessage()));
         }
         if(fileData.getBinary("data") != null){
-            String contentDisposition = "Content-Disposition: form-data; name=\"DistributionGroupingSet\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
-            addDataToBuffer(req, body, contentDisposition, fileData.getBinary("data"), fileData.getString("contentType"));
+            String contentDisposition = "Content-Disposition: form-data; name=\"DistributionGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
+            final String contentType = fileData.getString("contentType") + "; lyric-fileset.file-type=songSummary; lyric-csv.schema=TunecoreDistributionSample";
+            addDataToBuffer(req, body, contentDisposition, fileData.getBinary("data"), contentType);
         }
 
         String contentDisposition = "Content-Disposition: form-data; name=\"RegistrationRequest\"\r\n";
