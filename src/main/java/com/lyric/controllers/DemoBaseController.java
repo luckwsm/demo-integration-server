@@ -164,7 +164,7 @@ public class DemoBaseController {
             logger.error(String.format("Error getting csv data: %s", e.getMessage()));
         }
         if(fileData.getBinary("data") != null){
-            String contentDisposition = "Content-Disposition: form-data; name=\"DistributionGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
+            String contentDisposition = "Content-Disposition: form-data; name=\"FinancialRecordGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
             final String contentType = fileData.getString("contentType") + "; lyric-fileset.file-type=songSummary; lyric-csv.schema=TunecoreDistributionSample";
             addDataToBuffer(req, body, contentDisposition, fileData.getBinary("data"), contentType);
         }
@@ -179,10 +179,10 @@ public class DemoBaseController {
     private void addDataToBuffer(HttpServerRequest req, Buffer buffer, String contentDisposition, byte[] content, String contentType) {
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
 
-        String encryptedData = null;
+        String data = String.valueOf(content);
         if(useJose) {
             try {
-                encryptedData = signAndEncrypt(content, contentType);
+                data = signAndEncrypt(content, contentType);
             } catch (JoseException e) {
                 thowSignEncryptError(req);
             }
@@ -193,7 +193,7 @@ public class DemoBaseController {
         buffer.appendString(contentDisposition);
         buffer.appendString("Content-Type: " + contentType + "\r\n");
         buffer.appendString("\r\n");
-        buffer.appendString(encryptedData);
+        buffer.appendString(data);
         buffer.appendString("\r\n");
     }
 
