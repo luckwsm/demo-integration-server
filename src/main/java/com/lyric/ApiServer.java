@@ -60,16 +60,18 @@ public class ApiServer extends AbstractVerticle {
 
         final SecurityService assignmentSecurityService = new SecurityService(lyricAssignmentRsaJsonWebKey, localAssignmentRsaJsonWebKey);
         final SecurityService apiSecurityService = new SecurityService(lyricApiRsaJsonWebKey, localApiRsaJsonWebKey);
+        final TokenService tokenService = new TokenService(localApiRsaJsonWebKey);
 
         final ClientDemoController clientDemoController = new ClientDemoController(vertx, apiSecurityService);
         final ServerDemoController serverDemoController = new ServerDemoController(vertx, apiSecurityService);
         final AssignmentsController assignmentsController = new AssignmentsController(vertx, assignmentSecurityService);
-        final TokenController tokenController = new TokenController(vertx, localApiRsaJsonWebKey);
+        final TokenController tokenController = new TokenController(vertx, tokenService);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);
 
         router.get("/token").handler(tokenController::getToken);
+        router.get("/asynctoken").handler(tokenController::getAsyncToken);
 
         router.post("/clients/:id/assignments").handler(assignmentsController::create);
         router.get("/clients/:id/assignments").handler(assignmentsController::get);
