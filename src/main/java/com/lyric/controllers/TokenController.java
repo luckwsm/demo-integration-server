@@ -31,7 +31,7 @@ public class TokenController {
         String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, defaultVendorId, "widgetAPi", vendorClientAccountId, defaultVendorId);
+        handleGetToken(routingContext, defaultVendorId, "widgetApi", vendorClientAccountId, defaultVendorId);
     }
 
     public void getAsyncToken(RoutingContext routingContext) {
