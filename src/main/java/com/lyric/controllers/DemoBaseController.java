@@ -41,7 +41,23 @@ public class DemoBaseController {
             req.response().setChunked(true);
 
             cRes.bodyHandler(data -> {
-                logger.debug("Proxying response body:" + data);
+                logger.info("Proxying response body:" + data);
+
+                JsonWebEncryption jwe = null;
+                try {
+                    jwe = securityService.decryptPayload(data.toString());
+                } catch (JoseException e) {
+                    e.printStackTrace();
+                }
+
+                JsonObject response = null;
+                try {
+                    response = new JsonObject(jwe.getPlaintextString());
+                    logger.info("Proxying response body:" + response);
+                } catch (JoseException e) {
+                    e.printStackTrace();
+                }
+
                 req.response().end(data);
             });
         }).setChunked(true);
