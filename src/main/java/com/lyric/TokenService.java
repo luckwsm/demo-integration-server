@@ -19,11 +19,11 @@ public class TokenService {
         this.vendorRsaJsonWebKey = vendorRsaJsonWebKey;
     }
 
-    public String generateToken(String audience, String subject, String vendorId, boolean async) throws JoseException {
+    public String generateToken(String audience, String subject, String vendorId, boolean async, String issuer) throws JoseException {
 
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
-        claims.setIssuer(vendorId);  // who creates the token and signs it
+        claims.setIssuer(issuer);  // who creates the token and signs it
         claims.setAudience(audience); // to whom the token is intended to be sent
         claims.setExpirationTimeMinutesInTheFuture(60); // time when the token will expire (10 minutes from now)
         claims.setJwtId(UUID.randomUUID().toString());; // a unique identifier for the token

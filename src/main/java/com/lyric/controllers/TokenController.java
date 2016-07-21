@@ -31,21 +31,21 @@ public class TokenController {
         String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, "widgetApi", vendorClientAccountId, defaultVendorId, false);
+        handleGetToken(routingContext, "widgetApi", vendorClientAccountId, defaultVendorId, false, defaultVendorId);
     }
 
     public void getAsyncToken(RoutingContext routingContext) {
         String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, "vatmAsyncService", vendorClientAccountId, defaultVendorId, true);
+        handleGetToken(routingContext, "vatmAsyncService", vendorClientAccountId, defaultVendorId, true, "Vendor");
     }
 
-    private void handleGetToken(RoutingContext routingContext, String audience, String subject, String vendorId, boolean async) {
+    private void handleGetToken(RoutingContext routingContext, String audience, String subject, String vendorId, boolean async, String issuer) {
         final HttpServerResponse response = routingContext.response();
         String jwt = null;
         try {
-            jwt = tokenService.generateToken(audience, subject, vendorId, async);
+            jwt = tokenService.generateToken(audience, subject, vendorId, async, issuer);
         } catch (JoseException e) {
             logger.error(e.getCause());
             response.setStatusCode(500);
