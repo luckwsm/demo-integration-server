@@ -38,7 +38,7 @@ public class TokenController {
         String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, "vatmApi", vendorClientAccountId, defaultVendorId, true);
+        handleGetToken(routingContext, "vatmAsyncService", vendorClientAccountId, defaultVendorId, true);
     }
 
     private void handleGetToken(RoutingContext routingContext, String audience, String subject, String vendorId, boolean async) {
