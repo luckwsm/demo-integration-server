@@ -39,9 +39,10 @@ public class ServerDemoController extends DemoBaseController {
         }
 
         JsonObject options = routingContext.getBodyAsJson().getJsonObject("options");
+        String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
 
         /* Look up client data from your system */
-        JsonObject client = ClientRepository.findClient(clientId, false);
+        JsonObject client = ClientRepository.findClient(clientId, false, vendorId);
 
         String contentTypeFromOptions = options.getString("contentType");
 
