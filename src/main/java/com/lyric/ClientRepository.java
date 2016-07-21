@@ -61,8 +61,6 @@ public class ClientRepository {
 
         JsonObject vendorAccount = new JsonObject()
                 .put("vendorClientAccountId", vendorClientAccountId)
-                .put("projectedAdvanceLimit", Double.parseDouble("100"))
-                .put("advanceLimit", Double.parseDouble("100"))
                 .put("memberSince", "2007-01-01")
                 ;
 
