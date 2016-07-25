@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import org.apache.commons.logging.Log;
 import org.jose4j.lang.JoseException;
 
 /**
@@ -52,6 +53,9 @@ public class ServerDemoController extends DemoBaseController {
 
         if(contentTypeFromOptions.equals("multipart/form-data")){
             Buffer body = processMultipart(req, options, client, cReq);
+            logger.info("START OF API CALL: " + System.currentTimeMillis());
+            final String asyncTokenHeader = cReq.headers().get("ASYNC_TOKEN");
+            logger.info("ASYNC TOKEN HEADER: " + asyncTokenHeader);
             cReq.end(body);
         }
         else{
