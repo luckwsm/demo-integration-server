@@ -69,7 +69,7 @@ public class DemoBaseController {
         int defaultPort = isSslOn ? 443 : 80;
 
         HttpClientOptions options = new HttpClientOptions(new JsonObject().put("defaultPort", defaultPort).put("defaultHost", host)).setSsl(isSslOn);
-
+        options.setLogActivity(true);
         if(isSslOn){
             PfxOptions pfkKeyCertOptions = new PfxOptions();
             PemTrustOptions pemOptions = new PemTrustOptions();
@@ -123,8 +123,6 @@ public class DemoBaseController {
         */
         req.headers().remove(HttpHeaders.HOST);
         cReq.headers().setAll(req.headers());
-
-        final String asyncTokenHeader = cReq.headers().get("ASYNC_TOKEN");
 
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
         if(useJose){
