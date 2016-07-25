@@ -29,11 +29,11 @@ import java.util.Set;
  * Created by amadden on 1/29/16.
  */
 public class ApiServer extends AbstractVerticle {
-    public static final String ACCESS_TOKEN = "ACCESS_TOKEN";
+    public static final String ACCESS_TOKEN = "access-token";
 
     Logger logger = LoggerFactory.getLogger(ApiServer.class.getName());
     private static Set<HttpMethod> allHttpMethods = Sets.newConcurrentHashSet(EnumUtils.getEnumList(HttpMethod.class));
-    private static Set<String> allowedCorsHeaders = Sets.newConcurrentHashSet(Arrays.asList("Accept", "Authorization", "Content-Type", "vendorId", "ASYNC_TOKEN"));
+    private static Set<String> allowedCorsHeaders = Sets.newConcurrentHashSet(Arrays.asList("Accept", "Authorization", "Content-Type", "vendor-id", "async-token"));
     private CorsHandler corsHandler = CorsHandler.create("*").allowedMethods(allHttpMethods).allowedHeaders(allowedCorsHeaders).exposedHeader(ACCESS_TOKEN).exposedHeader("TOKEN");
 
     @Override

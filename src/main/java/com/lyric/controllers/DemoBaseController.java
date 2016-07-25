@@ -133,8 +133,8 @@ public class DemoBaseController {
     }
 
     protected void setAuthorizationHeaders(HttpClientRequest cReq, HttpServerRequest req) {
-        String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
-        cReq.putHeader("vendorId", vendorId);
+        String vendorId = getParam(req, "vendor-id", System.getenv("DEFAULT_VENDOR_ID"));
+        cReq.putHeader("vendor-id", vendorId);
 
         String authToken = getParam(req, "authToken", System.getenv("DEFAULT_AUTH_TOKEN"));
         cReq.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authToken);

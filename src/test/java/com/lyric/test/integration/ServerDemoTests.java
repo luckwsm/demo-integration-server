@@ -58,7 +58,7 @@ public class ServerDemoTests extends TestsBase{
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_server", resp -> {
             context.assertEquals(201, resp.statusCode());
-            String token = resp.getHeader("ACCESS_TOKEN");
+            String token = resp.getHeader("access-token");
             context.assertNotNull(token);
             async.complete();
         });
