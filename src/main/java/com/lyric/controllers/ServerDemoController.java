@@ -56,7 +56,8 @@ public class ServerDemoController extends DemoBaseController {
             logger.info("START OF API CALL: " + System.currentTimeMillis());
             final String asyncTokenHeader = cReq.headers().get("ASYNC_TOKEN");
             logger.info("ASYNC TOKEN HEADER: " + asyncTokenHeader);
-            cReq.end(body);
+            logger.info(cReq);
+            cReq.setChunked(true).end(body);
         }
         else{
             setHeaders(cReq, req);
@@ -80,7 +81,7 @@ public class ServerDemoController extends DemoBaseController {
                 }
             }
 
-            cReq.end(payload);
+            cReq.setChunked(true).end(payload);
         }
 
 

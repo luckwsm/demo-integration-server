@@ -46,7 +46,7 @@ public class ClientDemoController extends DemoBaseController {
 
         Buffer body = processMultipart(req, new JsonObject(), client, cReq);
 
-        cReq.end(body);
+        cReq.setChunked(true).end(body);
     }
 
 }

@@ -60,7 +60,7 @@ public class DemoBaseController {
 
                 req.response().end(response.toString());
             });
-        }).setChunked(true);
+        });
     }
 
     private HttpClient getHttpClient(HttpServerRequest request, Vertx vertx) {
