@@ -60,7 +60,7 @@ public class DemoBaseController {
 
                 req.response().end(response.toString());
             });
-        });
+        }).setChunked(true);
     }
 
     private HttpClient getHttpClient(HttpServerRequest request, Vertx vertx) {
@@ -117,7 +117,6 @@ public class DemoBaseController {
     }
 
     protected void setHeaders(HttpClientRequest cReq, HttpServerRequest req) {
-        logger.info("INTO SET HEADERS");
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
         provided to you.  The content-type will get copied from the server request.
@@ -126,7 +125,6 @@ public class DemoBaseController {
         cReq.headers().setAll(req.headers());
 
         final String asyncTokenHeader = cReq.headers().get("ASYNC_TOKEN");
-        logger.info("ASYNC TOKEN HEADER: " + asyncTokenHeader);
 
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
         if(useJose){
@@ -162,19 +160,7 @@ public class DemoBaseController {
         req.response().setStatusCode(500).end();
     }
 
-    protected Buffer processMultipart(HttpServerRequest req, JsonObject options, JsonObject client, HttpClientRequest cReq) {
-
-
-        setHeaders(cReq, req);
-        String contentType = String.format("multipart/form-data;boundary=%s", BOUNDARY);
-        cReq.putHeader("content-type", contentType);
-
-        Buffer body = generateMultipart(req, client, options);
-
-        return body;
-    }
-
-    private Buffer generateMultipart(HttpServerRequest req, JsonObject client, JsonObject options) {
+    protected Buffer generateMultipart(HttpServerRequest req, JsonObject client, JsonObject options) {
         Buffer body = Buffer.buffer();
 
         JsonObject fileData = new JsonObject();

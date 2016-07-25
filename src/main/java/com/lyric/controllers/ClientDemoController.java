@@ -39,14 +39,14 @@ public class ClientDemoController extends DemoBaseController {
         HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
 
         setHeaders(cReq, req);
-        cReq.setChunked(true);
 
         JsonObject client = routingContext.getBodyAsJson();
 
+        String contentType = String.format("multipart/form-data;boundary=%s", BOUNDARY);
+        cReq.putHeader("content-type", contentType);
 
-        Buffer body = processMultipart(req, new JsonObject(), client, cReq);
-
-        cReq.setChunked(true).end(body);
+        Buffer body = generateMultipart(req, client, new JsonObject());
+        cReq.end(body);
     }
 
 }

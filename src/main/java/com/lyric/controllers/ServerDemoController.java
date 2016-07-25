@@ -50,17 +50,19 @@ public class ServerDemoController extends DemoBaseController {
         String uri = getUri(contentTypeFromOptions);
         HttpClientRequest cReq = getHttpClientRequest(req, uri, vertx);
 
-
+        setHeaders(cReq, req);
         if(contentTypeFromOptions.equals("multipart/form-data")){
-            Buffer body = processMultipart(req, options, client, cReq);
+            String contentType = String.format("multipart/form-data;boundary=%s", BOUNDARY);
+            cReq.putHeader("content-type", contentType);
+
+            Buffer body = generateMultipart(req, client, options);
+
             logger.info("START OF API CALL: " + System.currentTimeMillis());
             final String asyncTokenHeader = cReq.headers().get("ASYNC_TOKEN");
             logger.info("ASYNC TOKEN HEADER: " + asyncTokenHeader);
-            logger.info(cReq);
-            cReq.setChunked(true).end(body);
+            cReq.end(body);
         }
         else{
-            setHeaders(cReq, req);
 //            if(shouldLoadRoyaltyEarningsCsv(options)){
 //                byte[] csvData = new byte[0];
 //                try {
@@ -81,7 +83,7 @@ public class ServerDemoController extends DemoBaseController {
                 }
             }
 
-            cReq.setChunked(true).end(payload);
+            cReq.end(payload);
         }
 
 
