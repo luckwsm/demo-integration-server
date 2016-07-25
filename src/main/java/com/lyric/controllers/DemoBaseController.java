@@ -42,7 +42,6 @@ public class DemoBaseController {
             req.response().setChunked(true);
 
             cRes.bodyHandler(data -> {
-                logger.info("Proxying response body:" + data);
 
                 JsonWebEncryption jwe = null;
                 try {
@@ -59,7 +58,7 @@ public class DemoBaseController {
                     e.printStackTrace();
                 }
 
-                req.response().end(data);
+                req.response().end(response.toString());
             });
         }).setChunked(true);
     }
@@ -118,12 +117,16 @@ public class DemoBaseController {
     }
 
     protected void setHeaders(HttpClientRequest cReq, HttpServerRequest req) {
+        logger.info("INTO SET HEADERS");
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
         provided to you.  The content-type will get copied from the server request.
         */
         req.headers().remove(HttpHeaders.HOST);
         cReq.headers().setAll(req.headers());
+
+        final String asyncTokenHeader = cReq.headers().get("ASYNC_TOKEN");
+        logger.info("ASYNC TOKEN HEADER: " + asyncTokenHeader);
 
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
         if(useJose){
