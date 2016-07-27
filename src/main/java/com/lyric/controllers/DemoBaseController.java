@@ -37,11 +37,16 @@ public class DemoBaseController {
 
         return httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());
+
             req.response().setStatusCode(cRes.statusCode());
             req.response().headers().setAll(cRes.headers());
             req.response().setChunked(true);
 
             cRes.bodyHandler(data -> {
+                logger.info(data);
+                if(cRes.statusCode() != 201 && cRes.statusCode() != 202){
+                    req.response().end(data.toString());
+                }
 
                 JsonWebEncryption jwe = null;
                 try {
