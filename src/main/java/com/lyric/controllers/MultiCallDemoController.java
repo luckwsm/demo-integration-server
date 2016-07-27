@@ -52,24 +52,29 @@ public class MultiCallDemoController extends DemoBaseController{
 
             registrationResp.bodyHandler(data -> {
 
+//                if(registrationResp.statusCode() != 202 && registrationResp.statusCode() != 201){
+//                    handleResponse(mainResponse, timer, registrationResp, data.toString());
+//                }
+                handleResponse(mainResponse, timer, registrationResp, data.toString());
+
                 JsonObject registrationRespData = getDecryptedResponse(data);
 
-                if(registrationResp.statusCode() != 202){
-                    handleResponse(mainResponse, timer, registrationResp, registrationRespData.toString());
-                }
+//                if(registrationResp.statusCode() != 202){
+//                    handleResponse(mainResponse, timer, registrationResp, registrationRespData.toString());
+//                }
 
                 String knownMemberToken = "3be08433-6392-4fb8-b7bb-d144e596d79f";
                 final HttpClientRequest fileSetReq = httpClient.post("/v1/clients/" + knownMemberToken + "/financialRecordGroupingFileSets.form", fileSetResp -> {
                     logger.info("File Set response: " + fileSetResp.statusCode());
 
                     fileSetResp.bodyHandler(fileSetData -> {
-                        if(fileSetResp.statusCode() != 201){
-                            handleResponse(mainResponse, timer, fileSetResp, fileSetData.toString());
-                            return;
-                        }
+//                        if(fileSetResp.statusCode() != 201){
+//                            handleResponse(mainResponse, timer, fileSetResp, fileSetData.toString());
+//                            return;
+//                        }
 
                         JsonObject fileSetRespData = getDecryptedResponse(fileSetData);
-                        handleResponse(mainResponse, timer, fileSetResp, fileSetRespData.toString());
+//                        handleResponse(mainResponse, timer, fileSetResp, fileSetRespData.toString());
                     });
                 }).setChunked(true);
 
@@ -90,26 +95,30 @@ public class MultiCallDemoController extends DemoBaseController{
         Buffer body = getRegistrationBody(req, client);
 
         registrationReq.end(body);
-        setPingResponse(mainResponse, timer);
+//        setPingResponse(mainResponse, timer);
     }
 
     private void handleResponse(HttpServerResponse mainResponse, Timer timer, HttpClientResponse resp, String responseData) {
         logger.info(responseData);
-        timer.cancel();
+//        timer.cancel();
         mainResponse.setStatusCode(resp.statusCode());
         mainResponse.headers().setAll(resp.headers());
         mainResponse.setChunked(true);
         mainResponse.end(responseData);
     }
 
-    private void setPingResponse(final HttpServerResponse mainResponse, Timer timer) {
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                mainResponse.writeContinue();
-            }
-        }, 10000, 10000);
-    }
+//    private void setPingResponse(final HttpServerResponse mainResponse, Timer timer) {
+//        timer.scheduleAtFixedRate(new TimerTask() {
+//            @Override
+//            public void run() {
+//                //String pingString = "Ping";
+//
+//                //mainResponse.putHeader("content-length", String.valueOf(pingString.getBytes().length));
+//                //mainResponse.write(pingString);
+//                mainResponse.writeContinue();
+//            }
+//        }, 2000, 2000);
+//    }
 
     private void setAsyncHeaders(HttpServerRequest req, HttpClientRequest request) {
         setHeaders(request, req);
