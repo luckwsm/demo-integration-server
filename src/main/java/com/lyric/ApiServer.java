@@ -1,12 +1,7 @@
 package com.lyric;
 
 import com.google.common.collect.Sets;
-import com.lyric.controllers.TokenController;
-import com.lyric.controllers.AssignmentsController;
-import com.lyric.controllers.ClientDemoController;
-import com.lyric.controllers.ServerDemoController;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigRenderOptions;
+import com.lyric.controllers.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpMethod;
@@ -16,7 +11,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.handler.StaticHandler;
 import org.apache.commons.lang3.EnumUtils;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
@@ -64,11 +58,13 @@ public class ApiServer extends AbstractVerticle {
 
         final ClientDemoController clientDemoController = new ClientDemoController(vertx, apiSecurityService);
         final ServerDemoController serverDemoController = new ServerDemoController(vertx, apiSecurityService);
+        final MultiCallDemoController multiCallDemoController = new MultiCallDemoController(vertx, apiSecurityService);
         final AssignmentsController assignmentsController = new AssignmentsController(vertx, assignmentSecurityService);
         final TokenController tokenController = new TokenController(vertx, tokenService);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);
+        router.post("/clients/:id/advance_multi").handler(multiCallDemoController::create);
 
         router.get("/token").handler(tokenController::getToken);
         router.get("/asynctoken").handler(tokenController::getAsyncToken);

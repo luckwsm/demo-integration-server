@@ -24,7 +24,7 @@ import java.net.URL;
  */
 public class DemoBaseController {
     Logger logger = LoggerFactory.getLogger(DemoBaseController.class.getName());
-    private final SecurityService securityService;
+    protected final SecurityService securityService;
     protected static String BOUNDARY = "----LyricBoundaryAL0lfjW6DJtKiwkd";
 
     public DemoBaseController(SecurityService securityService) {
@@ -63,7 +63,7 @@ public class DemoBaseController {
         }).setChunked(true);
     }
 
-    private HttpClient getHttpClient(HttpServerRequest request, Vertx vertx) {
+    protected HttpClient getHttpClient(HttpServerRequest request, Vertx vertx) {
         String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
         boolean isSslOn = Boolean.parseBoolean(getParam(request, "ssl", System.getenv("DEFAULT_SSL_FLAG")));
         int defaultPort = isSslOn ? 443 : 80;
@@ -180,7 +180,7 @@ public class DemoBaseController {
         return body;
     }
 
-    private void addDataToBuffer(HttpServerRequest req, Buffer buffer, String contentDisposition, byte[] content, String contentType) {
+    protected void addDataToBuffer(HttpServerRequest req, Buffer buffer, String contentDisposition, byte[] content, String contentType) {
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
 
         String data = String.valueOf(content);

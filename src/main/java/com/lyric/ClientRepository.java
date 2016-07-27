@@ -118,6 +118,17 @@ public class ClientRepository {
         return fileData;
     }
 
+    public static boolean fileExistsOnS3(String fileName){
+        AmazonS3 s3Client = new AmazonS3Client();
+        try {
+            s3Client.getObject(new GetObjectRequest("demo-earnings", fileName));
+        }
+        catch (AmazonServiceException e){
+            return false;
+        }
+        return true;
+    }
+
     private static boolean shouldLoadFromFileSystem(String royaltyEarningsContentType, String fileName) {
         return royaltyEarningsContentType != null && (royaltyEarningsContentType.equals("text/csv") || royaltyEarningsContentType.equals("application/zip") ) && !fileName.equals("");
     }
