@@ -42,7 +42,6 @@ public class MultiCallDemoController extends DemoBaseController{
         final HttpServerResponse mainResponse = req.response();
         HttpClient httpClient = getHttpClient(req, vertx);
 
-        Timer timer = new Timer();
         JsonObject client = routingContext.getBodyAsJson();
 
         boolean noFileForClient = !ClientRepository.fileExistsOnS3(client.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("vendorClientAccountId"));
@@ -55,7 +54,7 @@ public class MultiCallDemoController extends DemoBaseController{
 //                if(registrationResp.statusCode() != 202 && registrationResp.statusCode() != 201){
 //                    handleResponse(mainResponse, timer, registrationResp, data.toString());
 //                }
-                handleResponse(mainResponse, timer, registrationResp, data.toString());
+                handleResponse(mainResponse, registrationResp, data.toString());
 
                 JsonObject registrationRespData = getDecryptedResponse(data);
 
@@ -95,10 +94,9 @@ public class MultiCallDemoController extends DemoBaseController{
         Buffer body = getRegistrationBody(req, client);
 
         registrationReq.end(body);
-//        setPingResponse(mainResponse, timer);
     }
 
-    private void handleResponse(HttpServerResponse mainResponse, Timer timer, HttpClientResponse resp, String responseData) {
+    private void handleResponse(HttpServerResponse mainResponse, HttpClientResponse resp, String responseData) {
         logger.info(responseData);
 //        timer.cancel();
         mainResponse.setStatusCode(resp.statusCode());
@@ -106,19 +104,6 @@ public class MultiCallDemoController extends DemoBaseController{
         mainResponse.setChunked(true);
         mainResponse.end(responseData);
     }
-
-//    private void setPingResponse(final HttpServerResponse mainResponse, Timer timer) {
-//        timer.scheduleAtFixedRate(new TimerTask() {
-//            @Override
-//            public void run() {
-//                //String pingString = "Ping";
-//
-//                //mainResponse.putHeader("content-length", String.valueOf(pingString.getBytes().length));
-//                //mainResponse.write(pingString);
-//                mainResponse.writeContinue();
-//            }
-//        }, 2000, 2000);
-//    }
 
     private void setAsyncHeaders(HttpServerRequest req, HttpClientRequest request) {
         setHeaders(request, req);
