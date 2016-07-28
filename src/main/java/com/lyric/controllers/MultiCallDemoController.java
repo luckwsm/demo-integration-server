@@ -61,7 +61,7 @@ public class MultiCallDemoController extends DemoBaseController{
 //                if(registrationResp.statusCode() != 202){
 //                    handleResponse(mainResponse, timer, registrationResp, registrationRespData.toString());
 //                }
-                
+
                 String memberToken = registrationRespData.getJsonObject("vendorAccount").getString("memberToken");
                 final HttpClientRequest fileSetReq = httpClient.post("/v1/clients/" + memberToken + "/financialRecordGroupingFileSets.form", fileSetResp -> {
                     logger.info("File Set response: " + fileSetResp.statusCode());
@@ -88,7 +88,7 @@ public class MultiCallDemoController extends DemoBaseController{
         setAsyncHeaders(req, registrationReq);
 
         if(noFileForClient){
-            registrationReq.putHeader("noNewFinancialRecords", "true");
+            registrationReq.putHeader("no-new-financial-records", "true");
         }
 
         Buffer body = getRegistrationBody(req, client);
