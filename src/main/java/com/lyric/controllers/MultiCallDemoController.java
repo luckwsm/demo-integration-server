@@ -61,9 +61,9 @@ public class MultiCallDemoController extends DemoBaseController{
 //                if(registrationResp.statusCode() != 202){
 //                    handleResponse(mainResponse, timer, registrationResp, registrationRespData.toString());
 //                }
-
-                String knownMemberToken = "3be08433-6392-4fb8-b7bb-d144e596d79f";
-                final HttpClientRequest fileSetReq = httpClient.post("/v1/clients/" + knownMemberToken + "/financialRecordGroupingFileSets.form", fileSetResp -> {
+                
+                String memberToken = registrationRespData.getJsonObject("vendorAccount").getString("memberToken");
+                final HttpClientRequest fileSetReq = httpClient.post("/v1/clients/" + memberToken + "/financialRecordGroupingFileSets.form", fileSetResp -> {
                     logger.info("File Set response: " + fileSetResp.statusCode());
 
                     fileSetResp.bodyHandler(fileSetData -> {
