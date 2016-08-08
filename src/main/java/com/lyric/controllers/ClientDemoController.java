@@ -9,7 +9,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
-import org.jose4j.lang.JoseException;
 
 /**
  * Created by amadden on 1/29/16.
@@ -45,7 +44,7 @@ public class ClientDemoController extends DemoBaseController {
         String contentType = String.format("multipart/form-data;boundary=%s", BOUNDARY);
         cReq.putHeader("content-type", contentType);
 
-        Buffer body = generateMultipart(req, client, new JsonObject());
+        Buffer body = generateMultipart(req, client, new JsonObject(), cReq);
         cReq.end(body);
     }
 

@@ -13,6 +13,8 @@ import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.logging.Log;
 import org.jose4j.lang.JoseException;
 
+import java.util.Map;
+
 /**
  * Created by amadden on 1/29/16.
  */
@@ -55,11 +57,8 @@ public class ServerDemoController extends DemoBaseController {
             String contentType = String.format("multipart/form-data;boundary=%s", BOUNDARY);
             cReq.putHeader("content-type", contentType);
 
-            Buffer body = generateMultipart(req, client, options);
+            Buffer body = generateMultipart(req, client, options, cReq);
 
-            logger.info("START OF API CALL: " + System.currentTimeMillis());
-            final String asyncTokenHeader = cReq.headers().get("ASYNC_TOKEN");
-            logger.info("ASYNC TOKEN HEADER: " + asyncTokenHeader);
             cReq.end(body);
         }
         else{
@@ -82,6 +81,8 @@ public class ServerDemoController extends DemoBaseController {
                     thowSignEncryptError(req);
                 }
             }
+
+            cReq.putHeader("no-new-financial-records", "true");
 
             cReq.end(payload);
         }

@@ -163,7 +163,7 @@ public class DemoBaseController {
         req.response().setStatusCode(500).end();
     }
 
-    protected Buffer generateMultipart(HttpServerRequest req, JsonObject client, JsonObject options) {
+    protected Buffer generateMultipart(HttpServerRequest req, JsonObject client, JsonObject options, HttpClientRequest cReq) {
         Buffer body = Buffer.buffer();
 
         JsonObject fileData = new JsonObject();
@@ -176,6 +176,9 @@ public class DemoBaseController {
             String contentDisposition = "Content-Disposition: form-data; name=\"FinancialRecordGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
             final String contentType = fileData.getString("contentType") + "; lyric-fileset.file-type=songSummary; lyric-csv.schema=TunecoreDistributionSample";
             addDataToBuffer(req, body, contentDisposition, fileData.getBinary("data"), contentType);
+        }
+        else{
+            cReq.putHeader("no-new-financial-records", "true");
         }
 
         String contentDisposition = "Content-Disposition: form-data; name=\"RegistrationRequest\"\r\n";
