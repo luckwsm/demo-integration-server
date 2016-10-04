@@ -46,18 +46,6 @@ public class ClientRepository {
                 .put("maritalStatus", "single")
                 ;
 
-        JsonObject bankInfo = new JsonObject()
-                .put("bankName", "Bank of America")
-                .put("bankAccountNumber", "12345678")
-                .put("bankRoutingNumber", "211274450")
-                .put("bankAccountType", "checking")
-                ;
-
-        JsonObject taxInfo = new JsonObject()
-                .put("taxEinTinSsn", String.format("333-44-%d", random))
-                .put("tinType", "ssn")
-                .put("memberBusinessType", "individual")
-                ;
 
         JsonObject vendorAccount = new JsonObject()
                 .put("vendorClientAccountId", vendorClientAccountId)
@@ -73,8 +61,6 @@ public class ClientRepository {
         JsonObject userProfile = new JsonObject()
                 .put("user", user)
                 .put("vendorAccount", vendorAccount)
-                .put("taxInfo", taxInfo)
-                .put("bankInfo", bankInfo)
                 ;
 
         return new JsonObject()
