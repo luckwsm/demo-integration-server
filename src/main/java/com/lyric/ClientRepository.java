@@ -39,9 +39,9 @@ public class ClientRepository {
                 .put("city", "Omaha")
                 .put("state", "NE")
                 .put("zipCode", "68123")
-                .put("phone", String.format("207-555-%d", random))
-                .put("mobilePhone", String.format("207-556-%d", random))
-                .put("dob", "1967-01-01")
+                //.put("phone", String.format("207-555-%d", random))
+                //.put("mobilePhone", String.format("207-556-%d", random))
+                //.put("dob", "1967-01-01")
                 .put("gender", "male")
                 .put("maritalStatus", "single")
                 ;
