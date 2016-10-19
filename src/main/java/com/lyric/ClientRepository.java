@@ -34,16 +34,16 @@ public class ClientRepository {
         JsonObject user = new JsonObject()
                 .put("firstName", String.format("Test%d", random))
                 .put("lastName", String.format("User%d", random))
-                .put("address1", "327 S 87 St")
+                //.put("address1", "327 S 87 St")
                 .put("email", String.format("%s@email.com", random))
-                .put("city", "Omaha")
-                .put("state", "NE")
-                .put("zipCode", "68123")
+                //.put("city", "Omaha")
+                //.put("state", "NE")
+                //.put("zipCode", "68123")
                 //.put("phone", String.format("207-555-%d", random))
                 //.put("mobilePhone", String.format("207-556-%d", random))
                 //.put("dob", "1967-01-01")
-                .put("gender", "male")
-                .put("maritalStatus", "single")
+                //.put("gender", "male")
+                //.put("maritalStatus", "single")
                 ;
 
 
