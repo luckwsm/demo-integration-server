@@ -14,6 +14,8 @@ import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.lang.JoseException;
 
+import java.util.UUID;
+
 /**
  * Created by amadden on 2/3/16.
  */
@@ -31,21 +33,21 @@ public class TokenController {
         String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, "widgetApi", vendorClientAccountId, defaultVendorId, false, defaultVendorId);
+        handleGetToken(routingContext, "widgetApi", UUID.randomUUID().toString(), defaultVendorId, vendorClientAccountId, false, defaultVendorId);
     }
 
     public void getAsyncToken(RoutingContext routingContext) {
         String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, "vatmAsyncService", vendorClientAccountId, defaultVendorId, true, "Vendor");
+        handleGetToken(routingContext, "vatmAsyncService", UUID.randomUUID().toString(), defaultVendorId, vendorClientAccountId, true, "Vendor");
     }
 
-    private void handleGetToken(RoutingContext routingContext, String audience, String subject, String vendorId, boolean async, String issuer) {
+    private void handleGetToken(RoutingContext routingContext, String audience, String subject, String vendorId, String vendorClientAccountId, boolean async, String issuer) {
         final HttpServerResponse response = routingContext.response();
         String jwt = null;
         try {
-            jwt = tokenService.generateToken(audience, subject, vendorId, async, issuer);
+            jwt = tokenService.generateToken(audience, subject, vendorId, vendorClientAccountId, async, issuer);
         } catch (JoseException e) {
             logger.error(e.getCause());
             response.setStatusCode(500);

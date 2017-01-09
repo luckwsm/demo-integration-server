@@ -19,7 +19,7 @@ public class TokenService {
         this.vendorRsaJsonWebKey = vendorRsaJsonWebKey;
     }
 
-    public String generateToken(String audience, String subject, String vendorId, boolean async, String issuer) throws JoseException {
+    public String generateToken(String audience, String subject, String vendorId, String vendorClientAccountId, boolean async, String issuer) throws JoseException {
 
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
@@ -33,6 +33,7 @@ public class TokenService {
 
         claims.setClaim("vendorId", vendorId); // additional claims/attributes about the subject can be added
         claims.setClaim("async", async);
+        claims.setClaim("vendorClientAccountId", vendorClientAccountId);
 
 
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
