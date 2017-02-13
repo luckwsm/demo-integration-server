@@ -61,6 +61,8 @@ public class ApiServer extends AbstractVerticle {
         final MultiCallDemoController multiCallDemoController = new MultiCallDemoController(vertx, apiSecurityService);
         final AssignmentsController assignmentsController = new AssignmentsController(vertx, assignmentSecurityService);
         final TokenController tokenController = new TokenController(vertx, tokenService);
+        final FileDataController fileDataController = new FileDataController(vertx);
+        final ClientController clientController = new ClientController(vertx);
 
         router.post("/clients/:id/advance_client").handler(clientDemoController::create);
         router.post("/clients/:id/advance_server").handler(serverDemoController::create);
@@ -71,6 +73,9 @@ public class ApiServer extends AbstractVerticle {
 
         router.post("/clients/:id/assignments").handler(assignmentsController::create);
         router.get("/clients/:id/assignments").handler(assignmentsController::get);
+
+        router.post("/clients/:id/getfiledata").handler(fileDataController::getFileData);
+        router.post("/clients/:id").handler(clientController::getClient);
 
         final JsonObject serverOptions = new JsonObject();
 

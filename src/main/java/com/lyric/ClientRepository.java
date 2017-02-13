@@ -25,38 +25,81 @@ public class ClientRepository {
     your database.
      */
     public static JsonObject findClient(String vendorClientAccountId, Boolean memberTokenExists, String vendorId){
+        return findClient(vendorClientAccountId, memberTokenExists, vendorId, null);
+    }
 
+    public static JsonObject findClient(String vendorClientAccountId, Boolean memberTokenExists, String vendorId, JsonObject clientData){
+
+        if(vendorClientAccountId.equals("productionSmokeTestUser")){
+            return getProductionUser();
+        }
+
+        if(clientData != null){
+            return findExistingClient(vendorClientAccountId, vendorId, clientData);
+        }
+
+        return generateNewRandomClient(vendorClientAccountId, memberTokenExists, vendorId);
+    }
+
+    private static JsonObject findExistingClient(String vendorClientAccountId, String vendorId, JsonObject clientData){
+        return createClient(vendorClientAccountId, vendorId, clientData.getString("email"), clientData.getString("firstName"),
+                clientData.getString("lastName"), clientData.getString("memberSince", "2007-01-01"), clientData.getInteger("paymentTerms", 90),
+                clientData.getString("distributionCycle", "semiannual"));
+    }
+
+    private static JsonObject createClient(String vendorClientAccountId, String vendorId, String email, String firstName,
+                                           String lastName, String memberSince, int paymentTerms, String distributionCycle){
+        JsonObject user = new JsonObject()
+                .put("firstName", firstName)
+                .put("lastName", lastName)
+                .put("email", email)
+                ;
+
+        JsonObject vendorAccount = new JsonObject()
+                .put("vendorClientAccountId", vendorClientAccountId)
+                .put("vendorId", vendorId)
+                .put("memberSince", memberSince)
+                .put("paymentTerms", paymentTerms)
+                .put("distributionCycle", distributionCycle)
+                ;
+
+        JsonObject userProfile = new JsonObject()
+                .put("user", user)
+                .put("vendorAccount", vendorAccount)
+                ;
+
+        return new JsonObject()
+                .put("userProfile", userProfile);
+    }
+
+    private static JsonObject generateNewRandomClient(String vendorClientAccountId, Boolean memberTokenExists, String vendorId) {
         int START = 1000;
         int END = 9999;
         Random r = new Random();
         int random = r.nextInt((END - START) + 1) + START;
 
+        JsonObject userProfile = createClient(vendorClientAccountId, vendorId, String.format("%s@email.com", random),
+                String.format("Test%d", random), String.format("User%d", random), "2007-01-01", 90, "semiannual");
+
+        if(memberTokenExists){
+            userProfile.getJsonObject("userProfile").getJsonObject("vendorAccount").put("memberToken", "1e4bc0a6-043e-4c3e-b067-d5949f310112");
+        }
+
+        return userProfile;
+    }
+
+    private static JsonObject getProductionUser() {
         JsonObject user = new JsonObject()
-                .put("firstName", String.format("Test%d", random))
-                .put("lastName", String.format("User%d", random))
-                //.put("address1", "327 S 87 St")
-                .put("email", String.format("%s@email.com", random))
-                //.put("city", "Omaha")
-                //.put("state", "NE")
-                //.put("zipCode", "68123")
-                //.put("phone", String.format("207-555-%d", random))
-                //.put("mobilePhone", String.format("207-556-%d", random))
-                //.put("dob", "1967-01-01")
-                //.put("gender", "male")
-                //.put("maritalStatus", "single")
+                .put("firstName", String.format("Test%s", "Smoke"))
+                .put("lastName", String.format("User%s", "Test"))
+                .put("email", String.format("%s@email.com", "smokeTest"))
                 ;
 
 
         JsonObject vendorAccount = new JsonObject()
-                .put("vendorClientAccountId", vendorClientAccountId)
-                .put("vendorId", vendorId)
-                .put("memberSince", "2007-01-01")
+                .put("vendorClientAccountId", "productionSmokeTestUser")
+                .put("vendorId", "demo")
                 ;
-
-        if(memberTokenExists){
-            //vendorAccount.put("memberToken", String.format("member%d", random));
-            vendorAccount.put("memberToken", "1e4bc0a6-043e-4c3e-b067-d5949f310112");
-        }
 
         JsonObject userProfile = new JsonObject()
                 .put("user", user)
@@ -100,6 +143,18 @@ public class ClientRepository {
             logger.error("S3 ERROR: " + e.getErrorMessage(), e);
             return fileData;
         }
+
+//        JsonObject fileOptions = new JsonObject()
+//                .put("frequencyInDays", 182)
+//                .put("numberOfPeriods", 3)
+//                .put("numberOfRecordsPerPeriod", 6);
+
+//        String data = DataGenerator.buildDistributionSampleFile(fileOptions);
+//        String data = DataGenerator.buildStatementSummaryFile(fileOptions, client);
+//        fileData
+//                .put("filename", "test.csv")
+//                .put("contentType", "test/csv")
+//                .put("data", data.getBytes());
 
         return fileData;
     }

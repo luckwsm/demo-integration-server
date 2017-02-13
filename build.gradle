@@ -38,6 +38,11 @@ dependencyManagement {
 dependencies {
     compile 'com.google.guava:guava:20.0'
 
+    compile('org.jfairy:jfairy:0.3.0') {
+        exclude module: 'guava'
+    }
+    compile "org.joda:joda-money:0.10.0"
+
     compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'commons-codec:commons-codec:1.9'
 
@@ -67,9 +72,9 @@ test {
     environment 'AWS_SECRET_ACCESS_KEY', 'FNsY1e4PxAvsL3Wp1QiP4CtmgmIOIn164wlufQMa'
 
     //DEV
-//    environment 'API_ENV', 'dev'
-//    environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'demo-dev.lyricfinancial.com'
-//    environment 'DEFAULT_AUTH_TOKEN', 'eyJraWQiOiJseXJpY0FwaSIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJMeXJpYyIsImF1ZCI6InZlbmRvckFwaSIsImp0aSI6ImUwNzZjNjc1LWFjZjItNDliYS04ZWY4LWE5MTM4NmQyMTZiMCIsImV4cCI6NDYyNTY0MzEwNSwiaWF0IjoxNDcyMDQzMTA1LCJuYmYiOjE0NzIwNDI5ODUsInN1YiI6ImRlbW8iLCJ2ZW5kb3ItaWQiOiJkZW1vIn0.FxClruXw6ah1sG52WPnH7pIvHKROxF7gb2x_1KPN7-e-6K6f2bmis8Jz_G3kcOFgHmX-se-XkLswPMwgSHeiihFteXoucEzVslobI-JAnoxJbCTDBLGkogolNCH1QYkjR0mQrM3hTDTSJP1RAcAPQ8VeT2E5rMIWYB1q4t56y6-mN4cLSUX-ZeEJh4nIA2gT0Ob4lKMvJNAz94yZFNC26oQFeMLsKy5RKrColkPnXCcZvQb9_4OY2s2G-ckbAQHc85Mq155xENWLib5tGhn10OiNf13bnwFMAj0d696KdvqP6QcG0czzUh1ZxWigCc8e_AA-rI9Hckegcevq-p9Abw'
+    environment 'API_ENV', 'dev'
+    environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'demo-dev.lyricfinancial.com'
+    environment 'DEFAULT_AUTH_TOKEN', 'eyJraWQiOiJseXJpY0FwaSIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJMeXJpYyIsImF1ZCI6InZlbmRvckFwaSIsImp0aSI6ImUwNzZjNjc1LWFjZjItNDliYS04ZWY4LWE5MTM4NmQyMTZiMCIsImV4cCI6NDYyNTY0MzEwNSwiaWF0IjoxNDcyMDQzMTA1LCJuYmYiOjE0NzIwNDI5ODUsInN1YiI6ImRlbW8iLCJ2ZW5kb3ItaWQiOiJkZW1vIn0.FxClruXw6ah1sG52WPnH7pIvHKROxF7gb2x_1KPN7-e-6K6f2bmis8Jz_G3kcOFgHmX-se-XkLswPMwgSHeiihFteXoucEzVslobI-JAnoxJbCTDBLGkogolNCH1QYkjR0mQrM3hTDTSJP1RAcAPQ8VeT2E5rMIWYB1q4t56y6-mN4cLSUX-ZeEJh4nIA2gT0Ob4lKMvJNAz94yZFNC26oQFeMLsKy5RKrColkPnXCcZvQb9_4OY2s2G-ckbAQHc85Mq155xENWLib5tGhn10OiNf13bnwFMAj0d696KdvqP6QcG0czzUh1ZxWigCc8e_AA-rI9Hckegcevq-p9Abw'
 
     //STAGE
 //    environment 'API_ENV', 'stage'
@@ -77,9 +82,9 @@ test {
 //    environment 'DEFAULT_AUTH_TOKEN', 'eyJraWQiOiJrZXkxIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJMeXJpYyIsImF1ZCI6InZlbmRvckFwaSIsImp0aSI6IllWZlRxcFNMRkpDZ05ETkVsbnNsbEEiLCJleHAiOjQ2MTY2NjA3MDYsImlhdCI6MTQ2MzA2MDcwNiwibmJmIjoxNDYzMDYwNTg2LCJzdWIiOiJkZW1vIiwidmVuZG9ySWQiOiJkZW1vIn0.pKJMMAgHis4mBTxuifd8lXxU0jEOe6kuTOr4q8CyrpgfFB55f4EyOHfJyyRuplbzoNi_2b0uGbVAiAWjgFIAWkzbQIPvorojQuTHl6NHjsC3I5eRiUNBHWrL0B0eeGQ1ygA4XBwLHxfIWGnRgT62r2I-2qr5x6pKrJLYPAS0HMXLdBhpUVwj47Z4y89tg17sy4aGCY5d3VCEPvYyfyOT-WBhSq7MPq6vb0kcxjj7utbWpeIHX2Vy43QlKdkVQJZeK9yjroSe6jUvthWDgNjuKyXyyC1TrJ75QsOLxRGtJhc8k-RrCOz0_uYf6wnQn32iP9DuisSurtvEqdcUuoKd3w'
 
     //SANDBOX
-    environment 'API_ENV', 'sandbox'
-    environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'demo-sandbox.lyricfinancial.com'
-    environment 'DEFAULT_AUTH_TOKEN', 'eyJraWQiOiJseXJpY0FwaSIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJMeXJpYyIsImF1ZCI6InZlbmRvckFwaSIsImp0aSI6IjIxNmYwNDQ3LWI5NDItNDI2Zi05NGYyLWRhZjY2ZjNkMzAwMSIsImV4cCI6NDYyNjk2MDk0NSwiaWF0IjoxNDczMzYwOTQ1LCJuYmYiOjE0NzMzNjA4MjUsInN1YiI6ImRlbW8iLCJ2ZW5kb3ItaWQiOiJkZW1vIn0.DmmDHREkb29Pb24dOdoVuWiVsgO32pZOqh_HKgOnMY_Znv5FT7itAIyySyU2tj6BGcjLYKFK3CbR-fY7-DiQjDu6F6ke5Nj4JXK2pICWxhgsPvtYDwrvX5GGicKiVa4JlU2JXmXH_GRj02KC-jGBrDZztGqVJaxPc_hGqA4r8eSSfUUjksp77N1jZm4JmZ9_ka4tis5M__25820Nz-UMJq11KlO3Q1U6PBxN2R30tONBrNnutj7Ayu6X2xq7x6D_bLG-JoYXC9jSUMGR4lsOwoH9CKbOrTOrq5lCiDcRyly_FMb8V0eXuRw21lKUehS-UuokYT412Tzpnl1bhsJ5aA'
+//    environment 'API_ENV', 'sandbox'
+//    environment 'DEFAULT_INTEGRATION_SERVICES_HOST', 'demo-sandbox.lyricfinancial.com'
+//    environment 'DEFAULT_AUTH_TOKEN', 'eyJraWQiOiJseXJpY0FwaSIsImFsZyI6IlJTMjU2In0.eyJpc3MiOiJMeXJpYyIsImF1ZCI6InZlbmRvckFwaSIsImp0aSI6IjIxNmYwNDQ3LWI5NDItNDI2Zi05NGYyLWRhZjY2ZjNkMzAwMSIsImV4cCI6NDYyNjk2MDk0NSwiaWF0IjoxNDczMzYwOTQ1LCJuYmYiOjE0NzMzNjA4MjUsInN1YiI6ImRlbW8iLCJ2ZW5kb3ItaWQiOiJkZW1vIn0.DmmDHREkb29Pb24dOdoVuWiVsgO32pZOqh_HKgOnMY_Znv5FT7itAIyySyU2tj6BGcjLYKFK3CbR-fY7-DiQjDu6F6ke5Nj4JXK2pICWxhgsPvtYDwrvX5GGicKiVa4JlU2JXmXH_GRj02KC-jGBrDZztGqVJaxPc_hGqA4r8eSSfUUjksp77N1jZm4JmZ9_ka4tis5M__25820Nz-UMJq11KlO3Q1U6PBxN2R30tONBrNnutj7Ayu6X2xq7x6D_bLG-JoYXC9jSUMGR4lsOwoH9CKbOrTOrq5lCiDcRyly_FMb8V0eXuRw21lKUehS-UuokYT412Tzpnl1bhsJ5aA'
 
     //PROD
 //    environment 'API_ENV', 'production'
