@@ -29,14 +29,15 @@ public class FileDataController {
     // Used internally for our demos
     public void getFileData(RoutingContext routingContext) {
         HttpServerRequest req = routingContext.request();
-        JsonObject fileOptions = routingContext.getBodyAsJson();
+        JsonObject options = routingContext.getBodyAsJson();
         String clientId = getParam(req, "id", null);
         String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
 
-        JsonObject client = ClientRepository.findClient(clientId, false, vendorId);
+        JsonObject client = ClientRepository.findClient(clientId, false, vendorId, options.getJsonObject("clientData"));
 
         JsonArray fileData = new JsonArray();
 
+        final JsonObject fileOptions = options.getJsonObject("fileOptions");
         switch (fileOptions.getString("filesetFileType")) {
             case "songSummary":
                 fileData = DataGenerator.buildSongSummaryJson(fileOptions);
