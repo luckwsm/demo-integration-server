@@ -53,6 +53,8 @@ public class SecurityService {
 
         jwe.setHeader(HEADER_SIGNATURE, signature.getCompactSerialization());
         jwe.setContentTypeHeaderValue(cty);
+//        jwe.setHeader("lyric-csv-use-header","false");
+//        jwe.setHeader("lyric-csv-date-format-string", "yyyy-MM-dd HH:mm:ss");
         jwe.enableDefaultCompression();
 
         // The plaintext of the JWE is the message that we want to encrypt.

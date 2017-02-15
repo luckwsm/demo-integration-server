@@ -51,36 +51,23 @@ public class MultiCallDemoController extends DemoBaseController{
 
             registrationResp.bodyHandler(data -> {
 
-//                if(registrationResp.statusCode() != 202 && registrationResp.statusCode() != 201){
-//                    handleResponse(mainResponse, timer, registrationResp, data.toString());
-//                }
                 handleResponse(mainResponse, registrationResp, data.toString());
 
                 JsonObject registrationRespData = getDecryptedResponse(data);
-
-//                if(registrationResp.statusCode() != 202){
-//                    handleResponse(mainResponse, timer, registrationResp, registrationRespData.toString());
-//                }
 
                 String memberToken = registrationRespData.getJsonObject("vendorAccount").getString("memberToken");
                 final HttpClientRequest fileSetReq = httpClient.post("/v1/clients/" + memberToken + "/financialRecordGroupingFileSets.form", fileSetResp -> {
                     logger.info("File Set response: " + fileSetResp.statusCode());
 
                     fileSetResp.bodyHandler(fileSetData -> {
-//                        if(fileSetResp.statusCode() != 201){
-//                            handleResponse(mainResponse, timer, fileSetResp, fileSetData.toString());
-//                            return;
-//                        }
-
                         JsonObject fileSetRespData = getDecryptedResponse(fileSetData);
-//                        handleResponse(mainResponse, timer, fileSetResp, fileSetRespData.toString());
+                        logger.info("Decryped File Set Response: " + fileSetRespData);
                     });
                 }).setChunked(true);
 
                 Buffer body = getFileSetBody(req, client);
                 setAsyncHeaders(req, fileSetReq);
                 fileSetReq.end(body);
-
 
             });
         }).setChunked(true);
@@ -113,8 +100,14 @@ public class MultiCallDemoController extends DemoBaseController{
     private Buffer getRegistrationBody(HttpServerRequest req, JsonObject client) {
         Buffer body = Buffer.buffer();
 
-        String contentDisposition = "Content-Disposition: form-data; name=\"RegistrationRequest\"\r\n";
-        addDataToBuffer(req, body, contentDisposition, client.toString().getBytes(), "application/json");
+        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+
+        JsonObject multipartDetails = getRegistrationRequestMultipartDetails();
+        try {
+            addDataToBuffer(body, client.toString().getBytes(), multipartDetails, useJose);
+        } catch (JoseException e) {
+            thowSignEncryptError(req);
+        }
         body.appendString("--" + BOUNDARY + "--\r\n");
         return body;
     }
@@ -129,9 +122,14 @@ public class MultiCallDemoController extends DemoBaseController{
             logger.error(String.format("Error getting csv data: %s", e.getMessage()));
         }
 
-        String contentDisposition = "Content-Disposition: form-data; name=\"FinancialRecordGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
-        final String contentType = fileData.getString("contentType") + "; lyric-fileset.file-type=songSummary; lyric-csv.schema=TunecoreDistributionSample";
-        addDataToBuffer(req, body, contentDisposition, fileData.getBinary("data"), contentType);
+        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+
+        JsonObject fileMultipartDetails = getFileMultipartDetails(fileData);
+        try {
+            addDataToBuffer(body, fileData.getBinary("data"), fileMultipartDetails, useJose);
+        } catch (JoseException e) {
+            thowSignEncryptError(req);
+        }
         body.appendString("--" + BOUNDARY + "--\r\n");
         return body;
     }

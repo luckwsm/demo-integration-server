@@ -137,6 +137,8 @@ public class ClientRepository {
             fileData.put("contentType", object.getObjectMetadata().getContentType());
             fileData.put("filename", fileName);
             fileData.put("data", bytes);
+            fileData.put("filesetFileType", "songSummary");
+            fileData.put("csvSchema", "TunecoreDistributionSample");
             objectData.close();
         }
         catch(AmazonServiceException e){
@@ -144,19 +146,29 @@ public class ClientRepository {
             return fileData;
         }
 
-//        JsonObject fileOptions = new JsonObject()
-//                .put("frequencyInDays", 182)
-//                .put("numberOfPeriods", 3)
-//                .put("numberOfRecordsPerPeriod", 6);
 
-//        String data = DataGenerator.buildDistributionSampleFile(fileOptions);
-//        String data = DataGenerator.buildStatementSummaryFile(fileOptions, client);
-//        fileData
-//                .put("filename", "test.csv")
-//                .put("contentType", "test/csv")
-//                .put("data", data.getBytes());
 
         return fileData;
+    }
+
+    public static JsonObject generateRoyaltyEarnings(JsonObject fileOptions, JsonObject client){
+        String fileData = "";
+
+        switch (fileOptions.getString("filesetFileType")) {
+            case "songSummary":
+                fileData = DataGenerator.buildSongSummaryFile(fileOptions);
+                break;
+            case "statementSummary":
+                fileData = DataGenerator.buildStatementSummaryFile(fileOptions, client);
+                break;
+        }
+
+        return new JsonObject()
+                .put("filename", "test.csv")
+                .put("contentType", "test/csv")
+                .put("data", fileData.getBytes())
+                .put("filesetFileType", fileOptions.getString("filesetFileType"))
+                .put("csvSchema", fileOptions.getString("csvSchema"));
     }
 
     public static boolean fileExistsOnS3(String fileName){

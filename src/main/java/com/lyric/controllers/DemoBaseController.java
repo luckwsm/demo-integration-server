@@ -165,6 +165,7 @@ public class DemoBaseController {
 
     protected Buffer generateMultipart(HttpServerRequest req, JsonObject client, JsonObject options, HttpClientRequest cReq) {
         Buffer body = Buffer.buffer();
+        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
 
         JsonObject fileData = new JsonObject();
         try {
@@ -173,40 +174,77 @@ public class DemoBaseController {
             logger.error(String.format("Error getting csv data: %s", e.getMessage()));
         }
         if(fileData.getBinary("data") != null){
-            String contentDisposition = "Content-Disposition: form-data; name=\"FinancialRecordGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\r\n";
-            final String contentType = fileData.getString("contentType") + "; lyric-fileset.file-type=songSummary; lyric-csv.schema=TunecoreDistributionSample";
-            addDataToBuffer(req, body, contentDisposition, fileData.getBinary("data"), contentType);
+            String contentDisposition = "Content-Disposition: form-data; name=\"FinancialRecordGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\n";
+            final String contentType = fileData.getString("contentType") + "; lyric-fileset-file-type=songSummary; lyric-csv-schema=TunecoreDistributionSample";
+            cReq.putHeader("lyric-csv-use-header","true");
+            //cReq.putHeader("lyric-csv-use-header","false");
+            //cReq.putHeader("lyric-csv-date-format-string", "yyyy-MM-dd HH:mm:ss");
+
+            try {
+                addDataToBuffer(body, contentDisposition, fileData.getBinary("data"), contentType, useJose);
+            } catch (JoseException e) {
+                thowSignEncryptError(req);
+            }
         }
         else{
             cReq.putHeader("no-new-financial-records", "true");
         }
 
-        String contentDisposition = "Content-Disposition: form-data; name=\"RegistrationRequest\"\r\n";
-        addDataToBuffer(req, body, contentDisposition, client.toString().getBytes(), "application/json");
-        body.appendString("--" + BOUNDARY + "--\r\n");
+        String contentDisposition = "Content-Disposition: form-data; name=\"RegistrationRequest\"\n";
+        try {
+            addDataToBuffer(body, contentDisposition, client.toString().getBytes(), "application/json", useJose);
+        } catch (JoseException e) {
+            thowSignEncryptError(req);
+        }
+        body.appendString("--" + BOUNDARY + "--\n");
 
         return body;
     }
 
-    protected void addDataToBuffer(HttpServerRequest req, Buffer buffer, String contentDisposition, byte[] content, String contentType) {
-        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
+    protected JsonObject getRegistrationRequestMultipartDetails(){
+        return new JsonObject()
+                .put("contentDisposition", "Content-Disposition: form-data; name=\"RegistrationRequest\"\n")
+                .put("contentType", "application/json");
+    }
+
+    protected JsonObject getFileMultipartDetails(JsonObject fileData){
+        return new JsonObject()
+                .put("contentDisposition", "Content-Disposition: form-data; name=\"FinancialRecordGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\n")
+                .put("contentType", fileData.getString("contentType") + "; lyric-fileset-file-type=" + fileData.getString("filesetFileType", "songSummary") + "; lyric-csv-schema=" + fileData.getString("csvSchema", "TunecoreDistributionSample"));
+    }
+
+
+
+    protected void addDataToBuffer(Buffer buffer, byte[] content, JsonObject multipartDetails, boolean useJose) throws JoseException {
 
         String data = String.valueOf(content);
         if(useJose) {
-            try {
-                data = signAndEncrypt(content, contentType);
-            } catch (JoseException e) {
-                thowSignEncryptError(req);
-            }
+            data = signAndEncrypt(content, multipartDetails.getString("contentType"));
+            multipartDetails.put("contentType", "application/jose");
+        }
+
+        buffer.appendString("--" + BOUNDARY + "\n");
+        buffer.appendString(multipartDetails.getString("contentDisposition"));
+        buffer.appendString("Content-Type: " + multipartDetails.getString("contentType") + "\n");
+        buffer.appendString("\n");
+        buffer.appendString(data);
+        buffer.appendString("\n");
+    }
+
+    protected void addDataToBuffer(Buffer buffer, String contentDisposition, byte[] content, String contentType, boolean useJose) throws JoseException {
+
+        String data = String.valueOf(content);
+        if(useJose) {
+            data = signAndEncrypt(content, contentType);
             contentType = "application/jose";
         }
 
-        buffer.appendString("--" + BOUNDARY + "\r\n");
+        buffer.appendString("--" + BOUNDARY + "\n");
         buffer.appendString(contentDisposition);
-        buffer.appendString("Content-Type: " + contentType + "\r\n");
-        buffer.appendString("\r\n");
+        buffer.appendString("Content-Type: " + contentType + "\n");
+        buffer.appendString("\n");
         buffer.appendString(data);
-        buffer.appendString("\r\n");
+        buffer.appendString("\n");
     }
 
 }

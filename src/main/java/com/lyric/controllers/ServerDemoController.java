@@ -58,6 +58,7 @@ public class ServerDemoController extends DemoBaseController {
             cReq.putHeader("content-type", contentType);
 
             Buffer body = generateMultipart(req, client, options, cReq);
+            cReq.putHeader("no-new-financial-records", "true");
 
             cReq.end(body);
         }
