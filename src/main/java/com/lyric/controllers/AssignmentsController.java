@@ -48,8 +48,10 @@ public class AssignmentsController {
         JsonObject assignment = new JsonObject(body);
         assignmentService.assign(vendorClientAccountId, assignment);
 
+        String responseStatus = assignment.getDouble("advanceAmount") <= 10000 ? "assignment_confirmed" : "assignment_rejected";
+
         JsonObject responseObject = new JsonObject().put("memberToken", assignment.getString("memberToken"))
-                .put("vendorClientAccountId", assignment.getString("vendorClientAccountId"));
+                .put("vendorClientAccountId", assignment.getString("vendorClientAccountId")).put("advanceStatus", responseStatus);
 
         response.putHeader("content-type", "application/json").end(responseObject.toString());
 
