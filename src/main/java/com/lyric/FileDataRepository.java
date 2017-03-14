@@ -59,7 +59,7 @@ public class FileDataRepository {
                 for (String fileDataRow : dataRows) {
                     String[] fileDataRowParts = fileDataRow.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
-                    JsonObject fileDataRowJson = DataGenerator.createTunecoreDistributionSampleRecord(fileDataRowParts[0], fileDataRowParts[1], fileDataRowParts[2], fileDataRowParts[3],
+                    JsonObject fileDataRowJson = DataGenerator.createTunecoreDistributionSampleRecord(fileDataRowParts[0], cleanString(fileDataRowParts[1]), fileDataRowParts[2], fileDataRowParts[3],
                             fileDataRowParts[4], fileDataRowParts[5], fileDataRowParts[6], fileDataRowParts[7], fileDataRowParts[8], fileDataRowParts[9], fileDataRowParts[10],
                             fileDataRowParts[11], fileDataRowParts[12], Integer.parseInt(fileDataRowParts[13]), fileDataRowParts[14], fileDataRowParts[15], fileDataRowParts[16],
                             Integer.parseInt(fileDataRowParts[17]), Double.parseDouble(fileDataRowParts[18]), Double.parseDouble(fileDataRowParts[19]));
@@ -71,10 +71,10 @@ public class FileDataRepository {
                 for (String fileDataRow : fileDataRows) {
                     String[] fileDataRowParts = fileDataRow.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
-                    JsonObject fileDataRowJson = DataGenerator.createSonyatvStatementSummaryRecord(fileDataRowParts[0], fileDataRowParts[1], fileDataRowParts[2], fileDataRowParts[3],
-                            fileDataRowParts[4], fileDataRowParts[5], fileDataRowParts[6], fileDataRowParts[7], fileDataRowParts[8], bigDecimalOf(fileDataRowParts[9]),
-                            bigDecimalOf(fileDataRowParts[10]), bigDecimalOf(fileDataRowParts[11]), bigDecimalOf(fileDataRowParts[12]), bigDecimalOf(fileDataRowParts[13]),
-                            bigDecimalOf(fileDataRowParts[14]), bigDecimalOf(fileDataRowParts[15]), bigDecimalOf(fileDataRowParts[16]));
+                    JsonObject fileDataRowJson = DataGenerator.createSonyatvStatementSummaryRecord(cleanString(fileDataRowParts[0]), cleanString(fileDataRowParts[1]), cleanString(fileDataRowParts[2]),
+                            cleanString(fileDataRowParts[3]), cleanString(fileDataRowParts[4]), cleanString(fileDataRowParts[5]), cleanString(fileDataRowParts[6]), cleanString(fileDataRowParts[7]),
+                            cleanString(fileDataRowParts[8]), bigDecimalOf(fileDataRowParts[9]), bigDecimalOf(fileDataRowParts[10]), bigDecimalOf(fileDataRowParts[11]), bigDecimalOf(fileDataRowParts[12]),
+                            bigDecimalOf(fileDataRowParts[13]), bigDecimalOf(fileDataRowParts[14]), bigDecimalOf(fileDataRowParts[15]), bigDecimalOf(fileDataRowParts[16]));
 
                     fileRecordsJson.add(fileDataRowJson);
                 }
@@ -86,6 +86,14 @@ public class FileDataRepository {
 
     private static BigDecimal bigDecimalOf(String value){
         return BigDecimal.valueOf(Double.parseDouble(value));
+    }
+
+    private static String cleanString(String value){
+        if(!value.substring(0, 1).equals("\"")){
+            return value;
+        }
+
+        return value.substring(1, value.length()-1);
     }
 
     private static JsonObject getFileRecord(String fileType, String csvSchema, JsonArray additionalJweHeaders, FileOptions fileOptions, JsonObject client){

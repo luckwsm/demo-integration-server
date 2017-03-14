@@ -62,8 +62,6 @@ public class LyricDemoController extends DemoBaseController {
             vendorId = data.getString("vendorId");
         }
 
-        logger.info("CREATING REGISTRATION FOR: VENDORID-" + vendorId + " VENDORCLIENTACCOUNTID-" + clientId);
-
         final JsonObject defaultFileOptions = new JsonObject().put("schemas", new JsonArray().add("TunecoreDistributionSample")).put("frequencyInDays", 30).put("numberOfPeriods", 12).put("getInteger", 6);
         final FileOptions fileOptions = new FileOptions(data.getJsonObject("fileOptions", defaultFileOptions));
         final JsonObject options = data.getJsonObject("options", new JsonObject());

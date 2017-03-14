@@ -159,7 +159,7 @@ public class DemoBaseController {
         cReq.putHeader("vendor-id", vendorId);
 
         final String authTokenName = String.format("%s_%s_AUTH_TOKEN", vendorId, System.getenv("API_ENV")).toUpperCase();
-        logger.info("AUTH TOKEN NAME: " + authTokenName);
+
         String authToken = System.getenv(authTokenName);
 
         if(authToken == null){
