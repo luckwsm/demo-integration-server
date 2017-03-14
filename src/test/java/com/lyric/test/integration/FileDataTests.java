@@ -50,7 +50,9 @@ public class FileDataTests extends TestsBase {
                 .put("numberOfPeriods", numberOfPeriods)
                 .put("numberOfRecordsPerPeriod", recordsPerPeriod);
 
-        request.end(fileOptions.toString());
+        JsonObject data = new JsonObject().put("fileOptions", fileOptions);
+
+        request.end(data.toString());
     }
 
     @Test
@@ -81,7 +83,9 @@ public class FileDataTests extends TestsBase {
                 .put("frequencyInDays", 182)
                 .put("numberOfPeriods", numberOfPeriods);
 
-        request.end(fileOptions.toString());
+        JsonObject data = new JsonObject().put("fileOptions", fileOptions);
+
+        request.end(data.toString());
     }
 
 }

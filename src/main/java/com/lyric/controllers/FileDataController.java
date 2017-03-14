@@ -36,7 +36,7 @@ public class FileDataController {
 
         JsonArray fileData = new JsonArray();
 
-        final FileOptions fileOptions = new FileOptions(options);
+        final FileOptions fileOptions = new FileOptions(options.getJsonObject("fileOptions"));
 
         switch (fileOptions.getVendorType()) {
             case "distributor":
