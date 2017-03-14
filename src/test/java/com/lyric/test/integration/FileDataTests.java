@@ -48,7 +48,8 @@ public class FileDataTests extends TestsBase {
                 .put("vendorType", "distributor")
                 .put("frequencyInDays", 30)
                 .put("numberOfPeriods", numberOfPeriods)
-                .put("numberOfRecordsPerPeriod", recordsPerPeriod);
+                .put("numberOfRecordsPerPeriod", recordsPerPeriod)
+                .put("schemas", new JsonArray().add("TunecoreDistributionSample"));
 
         JsonObject data = new JsonObject().put("fileOptions", fileOptions);
 
@@ -81,7 +82,8 @@ public class FileDataTests extends TestsBase {
         JsonObject fileOptions = new JsonObject()
                 .put("vendorType", "publisher")
                 .put("frequencyInDays", 182)
-                .put("numberOfPeriods", numberOfPeriods);
+                .put("numberOfPeriods", numberOfPeriods)
+                .put("schemas", new JsonArray().add("SonyatvStatementSummary"));
 
         JsonObject data = new JsonObject().put("fileOptions", fileOptions);
 

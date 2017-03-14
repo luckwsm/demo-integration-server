@@ -7,6 +7,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
 import com.google.common.io.Resources;
+import com.lyric.models.CsvSchemaType;
 import com.lyric.models.FileOptions;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
@@ -31,22 +32,9 @@ public class FileDataRepository {
 
         JsonArray fileRecords = new JsonArray();
 
-        switch (fileOptions.getVendorType()) {
-            case "distributor":   //TUNECORE - THIS IS THE ONLY SCENARIO WHERE WE CAN USE THE SPECIFIED FILE NAME AND CONTENT TYPE
-                fileRecords.add(getFileRecord("songSummary", "TunecoreDistributionSample", null, fileOptions, client));
-                break;
-
-            case "publisher":   //SONYATV
-
-                JsonArray additionalJweHeaders = new JsonArray();
-                additionalJweHeaders.add("lyric-csv-use-header" + "|" + "false");
-                additionalJweHeaders.add("lyric-csv-date-format-string" + "|" + "yyyy-MM-dd HH:mm:ss");
-
-                fileRecords.add(getFileRecord("statementSummary", "SonyatvStatementSummary", additionalJweHeaders, fileOptions, client));
-                fileRecords.add(getFileRecord("earningSummary", "SonyatvEarningsSummary", additionalJweHeaders, fileOptions, client));
-                fileRecords.add(getFileRecord("songSummary", "SonyatvSongSummary", additionalJweHeaders, fileOptions, client));
-                fileRecords.add(getFileRecord("financialTransactions", "SonyatvFinancialTransactions", additionalJweHeaders, fileOptions, client));
-                break;
+        for (String schema : fileOptions.getSchemas()) {
+            final CsvSchemaType csvSchemaType = CsvSchemaType.valueOf(schema);
+            fileRecords.add(getFileRecord(csvSchemaType.getFileType(), csvSchemaType.name(), csvSchemaType.getAdditionalJweHeaders(), fileOptions, client));
         }
 
         return fileRecords;

@@ -38,15 +38,8 @@ public class FileDataController {
 
         final FileOptions fileOptions = new FileOptions(options.getJsonObject("fileOptions"));
 
-        switch (fileOptions.getVendorType()) {
-            case "distributor":
-                fileData = FileDataRepository.getFileRecordsJson("TunecoreDistributionSample", fileOptions, client);
-                break;
-            case "publisher":
-                fileData = FileDataRepository.getFileRecordsJson("SonyatvStatementSummary", fileOptions, client);
-                break;
-        }
-
+        final String schema = fileOptions.getSchemas()[0];
+        fileData = FileDataRepository.getFileRecordsJson(schema, fileOptions, client);
 
         final HttpServerResponse response = routingContext.response();
         response.end(fileData.toString());

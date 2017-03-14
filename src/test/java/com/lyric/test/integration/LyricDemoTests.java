@@ -2,6 +2,7 @@ package com.lyric.test.integration;
 
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -45,7 +46,7 @@ public class LyricDemoTests extends TestsBase {
                 .put("lastName", random + "Last"));
 
         data.put("fileOptions", new JsonObject()
-                .put("vendorType", "publisher"));
+                .put("schemas", new JsonArray().add("SonyatvEarningsSummary").add("SonyatvFinancialTransactions").add("SonyatvSongSummary").add("SonyatvStatementSummary")));
 
         data.put("vendorId", "demopublisher");
 
@@ -77,7 +78,7 @@ public class LyricDemoTests extends TestsBase {
                 .put("lastName", random + "Last"));
 
         data.put("fileOptions", new JsonObject()
-                .put("vendorType", "distributor"));
+                .put("schemas", new JsonArray().add("TunecoreDistributionSample")));
 
         data.put("vendorId", "demodistributor");
 
