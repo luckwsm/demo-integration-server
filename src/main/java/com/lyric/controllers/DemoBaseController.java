@@ -164,6 +164,8 @@ public class DemoBaseController {
             authToken = getParam(req, "authToken", System.getenv("DEFAULT_AUTH_TOKEN"));
         }
 
+        logger.info("SETTING AUTH HEADER: VENDORID-" + vendorId + " AUTHTOKEN-" + authToken);
+
         cReq.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authToken);
     }
 
