@@ -158,13 +158,13 @@ public class DemoBaseController {
 
         cReq.putHeader("vendor-id", vendorId);
 
-        String authToken = System.getenv(String.format("%s_%s_AUTH_TOKEN", vendorId, System.getenv("API_ENV")).toUpperCase());
+        final String authTokenName = String.format("%s_%s_AUTH_TOKEN", vendorId, System.getenv("API_ENV")).toUpperCase();
+        logger.info("AUTH TOKEN NAME: " + authTokenName);
+        String authToken = System.getenv(authTokenName);
 
         if(authToken == null){
             authToken = getParam(req, "authToken", System.getenv("DEFAULT_AUTH_TOKEN"));
         }
-
-        logger.info("SETTING AUTH HEADER: VENDORID-" + vendorId + " AUTHTOKEN-" + authToken);
 
         cReq.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authToken);
     }
