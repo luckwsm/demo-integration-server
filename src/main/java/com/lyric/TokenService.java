@@ -6,6 +6,7 @@ import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.lang.JoseException;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -13,14 +14,14 @@ import java.util.UUID;
  */
 public class TokenService {
 
-    private final RsaJsonWebKey vendorRsaJsonWebKey;
+    private final Map<String, RsaJsonWebKey> vendorRsaJsonWebKeyMap;
 
-    public TokenService(RsaJsonWebKey vendorRsaJsonWebKey) {
-        this.vendorRsaJsonWebKey = vendorRsaJsonWebKey;
+    public TokenService(Map<String, RsaJsonWebKey> vendorRsaJsonWebKeyMap) {
+        this.vendorRsaJsonWebKeyMap = vendorRsaJsonWebKeyMap;
     }
 
     public String generateToken(String audience, String subject, String vendorId, String vendorClientAccountId, boolean async, String issuer) throws JoseException {
-
+        RsaJsonWebKey vendorRsaJsonWebKey = vendorRsaJsonWebKeyMap.get(vendorId);
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         claims.setIssuer(issuer);  // who creates the token and signs it

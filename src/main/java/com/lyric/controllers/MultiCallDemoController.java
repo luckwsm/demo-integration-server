@@ -1,13 +1,16 @@
 package com.lyric.controllers;
 
 import com.lyric.ClientRepository;
+import com.lyric.FileDataRepository;
 import com.lyric.SecurityService;
+import com.lyric.models.FileOptions;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -29,7 +32,7 @@ public class MultiCallDemoController extends DemoBaseController{
 
     private final Vertx vertx;
 
-    Logger logger = LoggerFactory.getLogger(ServerDemoController.class.getName());
+    Logger logger = LoggerFactory.getLogger(MultiCallDemoController.class.getName());
 
 
     public MultiCallDemoController(Vertx vertx, SecurityService securityService) {
@@ -40,11 +43,18 @@ public class MultiCallDemoController extends DemoBaseController{
     public void create(RoutingContext routingContext) {
         HttpServerRequest req = routingContext.request();
         final HttpServerResponse mainResponse = req.response();
-        HttpClient httpClient = getHttpClient(req, vertx);
+        HttpClient httpClient = getHttpClient(req, vertx, null);
 
-        JsonObject client = routingContext.getBodyAsJson();
+        //JsonObject client = routingContext.getBodyAsJson();
+        JsonObject bodyData = routingContext.getBodyAsJson();
+        String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
 
-        boolean noFileForClient = !ClientRepository.fileExistsOnS3(client.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("vendorClientAccountId"));
+
+        String clientId = getParam(req, "id", null);
+
+        boolean noFileForClient = !FileDataRepository.fileExistsOnS3(clientId);
+
+        JsonObject client = getClientData(clientId, bodyData, vendorId);
 
         final HttpClientRequest registrationReq = httpClient.post("/v1/clients.form", registrationResp -> {
             logger.info("Registration response: " + registrationResp.statusCode());
@@ -53,32 +63,32 @@ public class MultiCallDemoController extends DemoBaseController{
 
                 handleResponse(mainResponse, registrationResp, data.toString());
 
-                JsonObject registrationRespData = getDecryptedResponse(data);
+                JsonObject registrationRespData = getDecryptedResponse(data, vendorId);
 
                 String memberToken = registrationRespData.getJsonObject("vendorAccount").getString("memberToken");
                 final HttpClientRequest fileSetReq = httpClient.post("/v1/clients/" + memberToken + "/financialRecordGroupingFileSets.form", fileSetResp -> {
                     logger.info("File Set response: " + fileSetResp.statusCode());
 
                     fileSetResp.bodyHandler(fileSetData -> {
-                        JsonObject fileSetRespData = getDecryptedResponse(fileSetData);
+                        JsonObject fileSetRespData = getDecryptedResponse(fileSetData, vendorId);
                         logger.info("Decryped File Set Response: " + fileSetRespData);
                     });
                 }).setChunked(true);
 
-                Buffer body = getFileSetBody(req, client);
-                setAsyncHeaders(req, fileSetReq);
+                Buffer body = getFileSetBody(req, client, vendorId);
+                setAsyncHeaders(req, fileSetReq, vendorId);
                 fileSetReq.end(body);
 
             });
         }).setChunked(true);
 
-        setAsyncHeaders(req, registrationReq);
+        setAsyncHeaders(req, registrationReq, vendorId);
 
         if(noFileForClient){
             registrationReq.putHeader("no-new-financial-records", "true");
         }
 
-        Buffer body = getRegistrationBody(req, client);
+        Buffer body = getRegistrationBody(req, client, vendorId);
 
         registrationReq.end(body);
     }
@@ -92,19 +102,19 @@ public class MultiCallDemoController extends DemoBaseController{
         mainResponse.end(responseData);
     }
 
-    private void setAsyncHeaders(HttpServerRequest req, HttpClientRequest request) {
-        setHeaders(request, req);
+    private void setAsyncHeaders(HttpServerRequest req, HttpClientRequest request, String vendorId) {
+        setHeaders(request, req, vendorId);
         request.putHeader("content-type", String.format("multipart/form-data;boundary=%s", BOUNDARY));
     }
 
-    private Buffer getRegistrationBody(HttpServerRequest req, JsonObject client) {
+    private Buffer getRegistrationBody(HttpServerRequest req, JsonObject client, String vendorId) {
         Buffer body = Buffer.buffer();
 
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
 
         JsonObject multipartDetails = getRegistrationRequestMultipartDetails();
         try {
-            addDataToBuffer(body, client.toString().getBytes(), multipartDetails, useJose);
+            addDataToBuffer(body, client.toString().getBytes(), multipartDetails, useJose, null, vendorId);
         } catch (JoseException e) {
             thowSignEncryptError(req);
         }
@@ -112,21 +122,18 @@ public class MultiCallDemoController extends DemoBaseController{
         return body;
     }
 
-    private Buffer getFileSetBody(HttpServerRequest req, JsonObject client) {
+    private Buffer getFileSetBody(HttpServerRequest req, JsonObject client, String vendorId) {
         Buffer body = Buffer.buffer();
 
-        JsonObject fileData = new JsonObject();
-        try {
-            ClientRepository.getRoyaltyEarnings(fileData, new JsonObject(), client);
-        } catch (IOException e) {
-            logger.error(String.format("Error getting csv data: %s", e.getMessage()));
-        }
+        JsonArray fileRecords = FileDataRepository.getFileRecords(new FileOptions(new JsonObject().put("vendorType", "distributor")), client);
 
         final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
 
-        JsonObject fileMultipartDetails = getFileMultipartDetails(fileData);
+        // THIS WILL NEED TO BE UPDATED TO SUPPORT SENDING MULTIPLE FILES
+        final JsonObject firstFileRecord = fileRecords.getJsonObject(0);
+        JsonObject fileMultipartDetails = getFileMultipartDetails(firstFileRecord);
         try {
-            addDataToBuffer(body, fileData.getBinary("data"), fileMultipartDetails, useJose);
+            addDataToBuffer(body, firstFileRecord.getBinary("data"), fileMultipartDetails, useJose, null, vendorId);
         } catch (JoseException e) {
             thowSignEncryptError(req);
         }
@@ -134,11 +141,11 @@ public class MultiCallDemoController extends DemoBaseController{
         return body;
     }
 
-    private JsonObject getDecryptedResponse(Buffer data) {
+    private JsonObject getDecryptedResponse(Buffer data, String vendorId) {
         logger.info(data);
         JsonWebEncryption jwe = null;
         try {
-            jwe = securityService.decryptPayload(data.toString());
+            jwe = securityService.decryptPayload(data.toString(), vendorId);
         } catch (JoseException e) {
             e.printStackTrace();
         }

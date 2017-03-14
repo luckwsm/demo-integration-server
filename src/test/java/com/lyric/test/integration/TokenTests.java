@@ -50,4 +50,21 @@ public class TokenTests extends TestsBase{
 
         request.end();
     }
+
+    @Test
+    public void testShouldReturnTokenForDemoPublisher(TestContext context) {
+        HttpClient client = vertx.createHttpClient();
+        Async async = context.async();
+
+        final HttpClientRequest request = client.get(8080, "localhost", "/token?vendorClientAccountId=amySonyTest&vendorId=demopublisher", resp -> {
+
+            resp.bodyHandler(buffer -> {
+                logger.info(resp.getHeader("TOKEN"));
+                context.assertEquals(200, resp.statusCode());
+                async.complete();
+            });
+        });
+
+        request.end();
+    }
 }

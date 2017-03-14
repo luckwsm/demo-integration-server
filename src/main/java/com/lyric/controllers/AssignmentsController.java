@@ -60,9 +60,10 @@ public class AssignmentsController {
     private void handleEncryptedRequest(String vendorClientAccountId, HttpServerResponse response, String body) {
         try {
 
-            JsonWebEncryption jwe = securityService.decryptPayload(body);
+            final String vendorId = System.getenv("DEFAULT_VENDOR_ID");
+            JsonWebEncryption jwe = securityService.decryptPayload(body, vendorId);
 
-            if(!securityService.isValidSignature(jwe)){
+            if(!securityService.isValidSignature(jwe, vendorId)){
                 logger.error("Signature is not Verified");
                 response.setStatusCode(500);
                 response.end();
@@ -75,8 +76,8 @@ public class AssignmentsController {
             JsonObject responseObject = new JsonObject().put("memberToken", assignment.getString("memberToken"))
                     .put("vendorClientAccountId", assignment.getString("vendorClientAccountId"));
 
-            JsonWebSignature signature = securityService.createSignature(responseObject.toString().getBytes());
-            String compactSerialization = securityService.encryptPayload(signature, responseObject.toString().getBytes(), "application/json");
+            JsonWebSignature signature = securityService.createSignature(responseObject.toString().getBytes(), vendorId);
+            String compactSerialization = securityService.encryptPayload(signature, responseObject.toString().getBytes(), "application/json", null, vendorId);
 
 
             response.putHeader("content-type", "application/jose").end(compactSerialization);

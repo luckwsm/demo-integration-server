@@ -6,6 +6,7 @@ import com.lyric.SecurityService;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -18,6 +19,7 @@ import org.jose4j.lang.JoseException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 
 /**
  * Created by amadden on 1/29/16.
@@ -31,9 +33,9 @@ public class DemoBaseController {
         this.securityService = securityService;
     }
 
-    protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx) {
+    protected HttpClientRequest getHttpClientRequest(HttpServerRequest req, String uri, Vertx vertx, String vendorId) {
 
-        HttpClient httpClient = getHttpClient(req, vertx);
+        HttpClient httpClient = getHttpClient(req, vertx, vendorId);
 
         return httpClient.post(uri, cRes -> {
             logger.info("Proxying response: " + cRes.statusCode());
@@ -50,7 +52,7 @@ public class DemoBaseController {
 
                 JsonWebEncryption jwe = null;
                 try {
-                    jwe = securityService.decryptPayload(data.toString());
+                    jwe = securityService.decryptPayload(data.toString(), vendorId);
                 } catch (JoseException e) {
                     e.printStackTrace();
                 }
@@ -68,8 +70,18 @@ public class DemoBaseController {
         }).setChunked(true);
     }
 
-    protected HttpClient getHttpClient(HttpServerRequest request, Vertx vertx) {
-        String host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
+    protected HttpClient getHttpClient(HttpServerRequest request, Vertx vertx, String vendorId) {
+        String host = "";
+        final String env = System.getenv("API_ENV");
+
+        if(vendorId != null){
+            host = String.format("%s-%s.lyricfinancial.com", vendorId, env);
+        }
+        else{
+            host = System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") != null ? System.getenv("DEFAULT_INTEGRATION_SERVICES_HOST") : "demo-dev.lyricfinancial.com";
+        }
+
+
         boolean isSslOn = Boolean.parseBoolean(getParam(request, "ssl", System.getenv("DEFAULT_SSL_FLAG")));
         int defaultPort = isSslOn ? 443 : 80;
 
@@ -79,10 +91,15 @@ public class DemoBaseController {
             PfxOptions pfkKeyCertOptions = new PfxOptions();
             PemTrustOptions pemOptions = new PemTrustOptions();
 
-            final String env = System.getenv("API_ENV");
-            Buffer certificate = getCert(String.format("%s/certificate.pfx", env));
-            Buffer intermediateCertificate = getCert(String.format("%s/intermediate.pem", env));
-            Buffer rootCertificate = getCert(String.format("%s/root.pem", env));
+            String fileLocation = env;
+
+            if(vendorId != null){
+                fileLocation += "/" + vendorId;
+            }
+
+            Buffer certificate = getCert(String.format("%s/certificate.pfx", fileLocation));
+            Buffer intermediateCertificate = getCert(String.format("%s/intermediate.pem", fileLocation));
+            Buffer rootCertificate = getCert(String.format("%s/root.pem", fileLocation));
 
             pfkKeyCertOptions
                     .setPassword("lyric_changeme")
@@ -121,7 +138,7 @@ public class DemoBaseController {
         return uri;
     }
 
-    protected void setHeaders(HttpClientRequest cReq, HttpServerRequest req) {
+    protected void setHeaders(HttpClientRequest cReq, HttpServerRequest req, String vendorId) {
         /* 3 headers need to be set in order to call the Registration API.  vendorId, content-type
         and authorization.  vendorId and the username and password to create the credentials will be
         provided to you.  The content-type will get copied from the server request.
@@ -134,14 +151,19 @@ public class DemoBaseController {
             cReq.putHeader("content-type", "application/jose");
         }
 
-        setAuthorizationHeaders(cReq, req);
+        setAuthorizationHeaders(cReq, req, vendorId);
     }
 
-    protected void setAuthorizationHeaders(HttpClientRequest cReq, HttpServerRequest req) {
-        String vendorId = getParam(req, "vendor-id", System.getenv("DEFAULT_VENDOR_ID"));
+    protected void setAuthorizationHeaders(HttpClientRequest cReq, HttpServerRequest req, String vendorId) {
+
         cReq.putHeader("vendor-id", vendorId);
 
-        String authToken = getParam(req, "authToken", System.getenv("DEFAULT_AUTH_TOKEN"));
+        String authToken = System.getenv(String.format("%s_%s_AUTH_TOKEN", vendorId, System.getenv("API_ENV")).toUpperCase());
+
+        if(authToken == null){
+            authToken = getParam(req, "authToken", System.getenv("DEFAULT_AUTH_TOKEN"));
+        }
+
         cReq.putHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authToken);
     }
 
@@ -153,52 +175,26 @@ public class DemoBaseController {
         return param;
     }
 
-    protected String signAndEncrypt(byte[] payload, String cty) throws JoseException {
-        JsonWebSignature jws = securityService.createSignature(payload);
-        return securityService.encryptPayload(jws, payload, cty);
+    protected JsonObject getClientData(String clientId, JsonObject data, String vendorId) {
+        JsonObject client = data.getJsonObject("client", null);
+
+        if(client == null){
+            JsonObject clientOptions = data.getJsonObject("clientOptions", null);
+
+            /* Look up client data from your system */
+            client = ClientRepository.findClient(clientId, false, vendorId, clientOptions);
+        }
+        return client;
+    }
+
+    protected String signAndEncrypt(byte[] payload, String cty, JsonArray additionalJweHeaders, String vendorId) throws JoseException {
+        JsonWebSignature jws = securityService.createSignature(payload, vendorId);
+        return securityService.encryptPayload(jws, payload, cty, additionalJweHeaders, vendorId);
     }
 
     protected void thowSignEncryptError(HttpServerRequest req) {
         req.response().setStatusMessage("Could not sign and encrypt payload.");
         req.response().setStatusCode(500).end();
-    }
-
-    protected Buffer generateMultipart(HttpServerRequest req, JsonObject client, JsonObject options, HttpClientRequest cReq) {
-        Buffer body = Buffer.buffer();
-        final boolean useJose = Boolean.parseBoolean(getParam(req, "jose", System.getenv("DEFAULT_JOSE_FLAG")));
-
-        JsonObject fileData = new JsonObject();
-        try {
-            ClientRepository.getRoyaltyEarnings(fileData, options, client);
-        } catch (IOException e) {
-            logger.error(String.format("Error getting csv data: %s", e.getMessage()));
-        }
-        if(fileData.getBinary("data") != null){
-            String contentDisposition = "Content-Disposition: form-data; name=\"FinancialRecordGroupingFileSet\"; filename=\"" + fileData.getString("filename") + "\"\n";
-            final String contentType = fileData.getString("contentType") + "; lyric-fileset-file-type=songSummary; lyric-csv-schema=TunecoreDistributionSample";
-            cReq.putHeader("lyric-csv-use-header","true");
-            //cReq.putHeader("lyric-csv-use-header","false");
-            //cReq.putHeader("lyric-csv-date-format-string", "yyyy-MM-dd HH:mm:ss");
-
-            try {
-                addDataToBuffer(body, contentDisposition, fileData.getBinary("data"), contentType, useJose);
-            } catch (JoseException e) {
-                thowSignEncryptError(req);
-            }
-        }
-        else{
-            cReq.putHeader("no-new-financial-records", "true");
-        }
-
-        String contentDisposition = "Content-Disposition: form-data; name=\"RegistrationRequest\"\n";
-        try {
-            addDataToBuffer(body, contentDisposition, client.toString().getBytes(), "application/json", useJose);
-        } catch (JoseException e) {
-            thowSignEncryptError(req);
-        }
-        body.appendString("--" + BOUNDARY + "--\n");
-
-        return body;
     }
 
     protected JsonObject getRegistrationRequestMultipartDetails(){
@@ -215,33 +211,17 @@ public class DemoBaseController {
 
 
 
-    protected void addDataToBuffer(Buffer buffer, byte[] content, JsonObject multipartDetails, boolean useJose) throws JoseException {
+    protected void addDataToBuffer(Buffer buffer, byte[] content, JsonObject multipartDetails, boolean useJose, JsonArray additionalHeaders, String vendorId) throws JoseException {
 
-        String data = String.valueOf(content);
+        String data = new String(content);
         if(useJose) {
-            data = signAndEncrypt(content, multipartDetails.getString("contentType"));
+            data = signAndEncrypt(content, multipartDetails.getString("contentType"), additionalHeaders, vendorId);
             multipartDetails.put("contentType", "application/jose");
         }
 
         buffer.appendString("--" + BOUNDARY + "\n");
         buffer.appendString(multipartDetails.getString("contentDisposition"));
         buffer.appendString("Content-Type: " + multipartDetails.getString("contentType") + "\n");
-        buffer.appendString("\n");
-        buffer.appendString(data);
-        buffer.appendString("\n");
-    }
-
-    protected void addDataToBuffer(Buffer buffer, String contentDisposition, byte[] content, String contentType, boolean useJose) throws JoseException {
-
-        String data = String.valueOf(content);
-        if(useJose) {
-            data = signAndEncrypt(content, contentType);
-            contentType = "application/jose";
-        }
-
-        buffer.appendString("--" + BOUNDARY + "\n");
-        buffer.appendString(contentDisposition);
-        buffer.appendString("Content-Type: " + contentType + "\n");
         buffer.appendString("\n");
         buffer.appendString(data);
         buffer.appendString("\n");

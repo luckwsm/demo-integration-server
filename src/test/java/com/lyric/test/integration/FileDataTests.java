@@ -21,7 +21,7 @@ public class FileDataTests extends TestsBase {
     Logger logger = LoggerFactory.getLogger(FileDataTests.class.getName());
 
     @Test
-    public void testShouldGetSongSummaryFileData(TestContext context){
+    public void testShouldGetTunecoreDistributionSampleFileData(TestContext context){
 
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
@@ -45,8 +45,7 @@ public class FileDataTests extends TestsBase {
         request.headers().set("content-type", "application/json");
 
         JsonObject fileOptions = new JsonObject()
-                .put("filesetFileType", "songSummary")
-                .put("csvSchema", "TunecoreDistributionSample")
+                .put("vendorType", "distributor")
                 .put("frequencyInDays", 30)
                 .put("numberOfPeriods", numberOfPeriods)
                 .put("numberOfRecordsPerPeriod", recordsPerPeriod);
@@ -55,7 +54,7 @@ public class FileDataTests extends TestsBase {
     }
 
     @Test
-    public void testShouldGetStatementSummaryFileData(TestContext context){
+    public void testShouldGetSonyAtvStatementSummaryFileData(TestContext context){
 
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
@@ -78,8 +77,7 @@ public class FileDataTests extends TestsBase {
         request.headers().set("content-type", "application/json");
 
         JsonObject fileOptions = new JsonObject()
-                .put("filesetFileType", "statementSummary")
-                .put("csvSchema", "SonyatvStatementSummary")
+                .put("vendorType", "publisher")
                 .put("frequencyInDays", 182)
                 .put("numberOfPeriods", numberOfPeriods);
 

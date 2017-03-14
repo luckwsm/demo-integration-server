@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by amadden on 1/29/16.
@@ -50,16 +52,20 @@ public class AssignmentTests extends TestsBase{
 
 
         try {
+            Map<String, RsaJsonWebKey> vendorRsaJsonWebKeyMap = new HashMap<>();
+            Map<String, RsaJsonWebKey> lyricRsaJsonWebKeyMap = new HashMap<>();
             final JsonObject jsonKey = getLyricKeys();
             final RsaJsonWebKey lyricRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(jsonKey.toString());
+            lyricRsaJsonWebKeyMap.put("demo", lyricRsaJsonWebKey);
 
             final JsonObject vendorKey = getVendorKey();
             final RsaJsonWebKey vendorRsaJsonWebKey = (RsaJsonWebKey) JsonWebKey.Factory.newJwk(vendorKey.toString());
+            vendorRsaJsonWebKeyMap.put("demo", vendorRsaJsonWebKey);
 
-            SecurityService securityService = new SecurityService(vendorRsaJsonWebKey, lyricRsaJsonWebKey);
+            SecurityService securityService = new SecurityService(lyricRsaJsonWebKeyMap, vendorRsaJsonWebKeyMap);
 
-            JsonWebSignature signedPayload = securityService.createSignature(assignment.toString().getBytes());
-            String encryptedPayload = securityService.encryptPayload(signedPayload, assignment.toString().getBytes(), "application/json");
+            JsonWebSignature signedPayload = securityService.createSignature(assignment.toString().getBytes(), "demo");
+            String encryptedPayload = securityService.encryptPayload(signedPayload, assignment.toString().getBytes(), "application/json", null, "demo");
 
             request.end(encryptedPayload);
         }

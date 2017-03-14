@@ -50,9 +50,13 @@ public class MultiCallDemoTests extends TestsBase{
         });
         request.headers().set("content-type", "application/json");
 
-        JsonObject clientInfo = ClientRepository.findClient(String.format("client%d", random), false, "demo");
+        JsonObject data = new JsonObject();
+//        data.put("options", new JsonObject()
+//                .put("contentType", "multipart/form-data")
+//                .put("royaltyEarningsContentType", "text/csv")
+//                .put("filename", "943344.csv"));
 
-        request.end(clientInfo.toString());
+        request.end(data.toString());
     }
 
     @Ignore
@@ -61,10 +65,10 @@ public class MultiCallDemoTests extends TestsBase{
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
 
-        JsonObject clientInfo = getKnownClient();
-        String vendorClientAccountId = clientInfo.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("vendorClientAccountId");
+        int random = getRandomNumber();
+
         final long startTime = System.currentTimeMillis();
-        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + vendorClientAccountId + "/advance_multi", resp -> {
+        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance_multi", resp -> {
             logger.info("Status code: " + resp.statusCode());
 
             context.assertEquals(202, resp.statusCode());
@@ -82,34 +86,13 @@ public class MultiCallDemoTests extends TestsBase{
 
         request.headers().set("content-type", "application/json");
 
-        request.end(clientInfo.toString());
+        JsonObject data = new JsonObject();
+        data.put("options", new JsonObject()
+                .put("contentType", "multipart/form-data")
+                .put("royaltyEarningsContentType", "text/csv")
+                .put("filename", "943344.csv"));
+
+        request.end(data.toString());
     }
 
-    public static JsonObject getKnownClient(){
-
-        int START = 1000;
-        int END = 9999;
-        Random r = new Random();
-        int random = r.nextInt((END - START) + 1) + START;
-
-        JsonObject user = new JsonObject()
-                .put("firstName", String.format("Amy", random))
-                .put("lastName", String.format("Test4", random))
-                .put("email", String.format("amyTest4@email.com", random))
-                ;
-
-        JsonObject vendorAccount = new JsonObject()
-                .put("vendorClientAccountId", "amyTest4")
-                .put("vendorId", "demo")
-                .put("memberSince", "2007-01-01")
-                ;
-
-        JsonObject userProfile = new JsonObject()
-                .put("user", user)
-                .put("vendorAccount", vendorAccount)
-                ;
-
-        return new JsonObject()
-                .put("userProfile", userProfile);
-    }
 }

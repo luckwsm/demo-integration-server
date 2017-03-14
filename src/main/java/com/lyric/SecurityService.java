@@ -3,6 +3,7 @@ package com.lyric;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import io.vertx.core.json.JsonArray;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.JsonWebEncryption;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -11,6 +12,9 @@ import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by amymadden on 2/24/16.
  */
@@ -18,15 +22,17 @@ public class SecurityService {
     private HashFunction hashFunction = Hashing.sha256();
     public static final String HEADER_SIGNATURE = "SIGNATURE";
 
-    private final RsaJsonWebKey remoteRsaJsonWebKey;
-    private final RsaJsonWebKey localRsaJsonWebKey;
+    private final Map<String, RsaJsonWebKey> remoteRsaJsonWebKeyMap;
+    private final Map<String, RsaJsonWebKey> localRsaJsonWebKeyMap;
 
-    public SecurityService(RsaJsonWebKey remoteRsaJsonWebKey, RsaJsonWebKey localRsaJsonWebKey) {
-        this.remoteRsaJsonWebKey = remoteRsaJsonWebKey;
-        this.localRsaJsonWebKey = localRsaJsonWebKey;
+    public SecurityService(Map<String, RsaJsonWebKey> remoteRsaJsonWebKeyMap, Map<String, RsaJsonWebKey> localRsaJsonWebKeyMap) {
+        this.remoteRsaJsonWebKeyMap = remoteRsaJsonWebKeyMap;
+        this.localRsaJsonWebKeyMap = localRsaJsonWebKeyMap;
     }
 
-    public JsonWebSignature createSignature(byte[] payload) {
+    public JsonWebSignature createSignature(byte[] payload, String vendorId) {
+        RsaJsonWebKey localRsaJsonWebKey = localRsaJsonWebKeyMap.get(vendorId);
+
         final HashCode contentHash = hashFunction.hashBytes(payload);
 
         JsonWebSignature jws = new JsonWebSignature();
@@ -46,15 +52,21 @@ public class SecurityService {
         return jws;
     }
 
-    public String encryptPayload(JsonWebSignature signature, byte[] payload, String cty) throws JoseException {
-
+    public String encryptPayload(JsonWebSignature signature, byte[] payload, String cty, JsonArray additionalJweHeaders, String vendorId) throws JoseException {
+        RsaJsonWebKey remoteRsaJsonWebKey = remoteRsaJsonWebKeyMap.get(vendorId);
         // Create a new Json Web Encryption object
         JsonWebEncryption jwe = new JsonWebEncryption();
 
         jwe.setHeader(HEADER_SIGNATURE, signature.getCompactSerialization());
         jwe.setContentTypeHeaderValue(cty);
-//        jwe.setHeader("lyric-csv-use-header","false");
-//        jwe.setHeader("lyric-csv-date-format-string", "yyyy-MM-dd HH:mm:ss");
+
+        if(additionalJweHeaders != null && !additionalJweHeaders.isEmpty()){
+            for (Object additionalJweHeader : additionalJweHeaders) {
+                String[] parts = additionalJweHeader.toString().split("\\|");
+                jwe.setHeader(parts[0], parts[1]);
+            }
+        }
+
         jwe.enableDefaultCompression();
 
         // The plaintext of the JWE is the message that we want to encrypt.
@@ -79,7 +91,8 @@ public class SecurityService {
         return jwe.getCompactSerialization();
     }
 
-    public JsonWebEncryption decryptPayload(String payload) throws JoseException {
+    public JsonWebEncryption decryptPayload(String payload, String vendorId) throws JoseException {
+        RsaJsonWebKey localRsaJsonWebKey = localRsaJsonWebKeyMap.get(vendorId);
         JsonWebEncryption jwe = new JsonWebEncryption();
 
         // Set the compact serialization on new Json Web Encryption object, which is the payload of
@@ -93,7 +106,8 @@ public class SecurityService {
         return jwe;
     }
 
-    public boolean isValidSignature(JsonWebEncryption jwe) throws JoseException {
+    public boolean isValidSignature(JsonWebEncryption jwe, String vendorId) throws JoseException {
+        RsaJsonWebKey remoteRsaJsonWebKey = remoteRsaJsonWebKeyMap.get(vendorId);
         String signature = jwe.getHeader(HEADER_SIGNATURE);
 
         JsonWebSignature jws = new JsonWebSignature();

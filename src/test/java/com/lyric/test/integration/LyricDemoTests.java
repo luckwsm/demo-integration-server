@@ -21,12 +21,13 @@ public class LyricDemoTests extends TestsBase {
     Logger logger = LoggerFactory.getLogger(LyricDemoTests.class.getName());
 
     @Test
-    public void testShouldRegisterUserWithGeneratedSongSummaryData(TestContext context){
+    public void testCanRegisterPublisherWithFileFromFileSystem(TestContext context){
 
         HttpClient client = vertx.createHttpClient();
         Async async = context.async();
 
-        int random = getRandomNumber();
+        //int random = getRandomNumber();
+        String random = "amyLyricTest";
 
         final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
             context.assertEquals(201, resp.statusCode());
@@ -44,11 +45,41 @@ public class LyricDemoTests extends TestsBase {
                 .put("lastName", random + "Last"));
 
         data.put("fileOptions", new JsonObject()
-                .put("csvSchema", "TunecoreDistributionSample")
-                .put("filesetFileType", "songSummary")
-                .put("frequencyInDays", 30)
-                .put("numberOfPeriods", 14)
-                .put("numberOfRecordsPerPeriod", 5));
+                .put("vendorType", "publisher"));
+
+        data.put("vendorId", "demopublisher");
+
+        request.end(data.toString());
+    }
+
+    @Test
+    public void testCanRegisterDistributorWithFileFromFileSystem(TestContext context){
+
+        HttpClient client = vertx.createHttpClient();
+        Async async = context.async();
+
+        //int random = getRandomNumber();
+        String random = "amyLyricDistTest";
+
+        final HttpClientRequest request = client.post(8080, "localhost", "/clients/" + random + "/advance", resp -> {
+            context.assertEquals(201, resp.statusCode());
+            String token = resp.getHeader("access-token");
+            context.assertNotNull(token);
+            async.complete();
+        });
+        request.headers().set("content-type", "application/json");
+
+        JsonObject data = new JsonObject();
+
+        data.put("clientOptions", new JsonObject()
+                .put("email", random + "@email.com")
+                .put("firstName", random + "First")
+                .put("lastName", random + "Last"));
+
+        data.put("fileOptions", new JsonObject()
+                .put("vendorType", "distributor"));
+
+        data.put("vendorId", "demodistributor");
 
         request.end(data.toString());
     }

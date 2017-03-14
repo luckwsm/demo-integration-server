@@ -1,7 +1,8 @@
 package com.lyric.controllers;
 
 import com.lyric.ClientRepository;
-import com.lyric.DataGenerator;
+import com.lyric.FileDataRepository;
+import com.lyric.models.FileOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -11,8 +12,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.UUID;
 
 /**
  * Created by amymadden on 2/11/17.
@@ -37,15 +36,17 @@ public class FileDataController {
 
         JsonArray fileData = new JsonArray();
 
-        final JsonObject fileOptions = options.getJsonObject("fileOptions");
-        switch (fileOptions.getString("filesetFileType")) {
-            case "songSummary":
-                fileData = DataGenerator.buildSongSummaryJson(fileOptions);
+        final FileOptions fileOptions = new FileOptions(options);
+
+        switch (fileOptions.getVendorType()) {
+            case "distributor":
+                fileData = FileDataRepository.getFileRecordsJson("TunecoreDistributionSample", fileOptions, client);
                 break;
-            case "statementSummary":
-                fileData = DataGenerator.buildStatementSummaryJson(fileOptions, client);
+            case "publisher":
+                fileData = FileDataRepository.getFileRecordsJson("SonyatvStatementSummary", fileOptions, client);
                 break;
         }
+
 
         final HttpServerResponse response = routingContext.response();
         response.end(fileData.toString());

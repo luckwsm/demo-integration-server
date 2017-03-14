@@ -3,11 +3,13 @@ package com.lyric.controllers;
 import com.lyric.ClientRepository;
 import com.lyric.TokenService;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -30,17 +32,17 @@ public class TokenController {
     }
 
     public void getToken(RoutingContext routingContext) {
-        String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
+        String vendorId = getParam(routingContext.request(), "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, "widgetApi", UUID.randomUUID().toString(), defaultVendorId, vendorClientAccountId, false, defaultVendorId);
+        handleGetToken(routingContext, "widgetApi", UUID.randomUUID().toString(), vendorId, vendorClientAccountId, false, vendorId);
     }
 
     public void getAsyncToken(RoutingContext routingContext) {
-        String defaultVendorId = System.getenv("DEFAULT_VENDOR_ID");
+        String vendorId =  getParam(routingContext.request(), "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
         String vendorClientAccountId = routingContext.request().getParam("vendorClientAccountId");
 
-        handleGetToken(routingContext, "vatmAsyncService", UUID.randomUUID().toString(), defaultVendorId, vendorClientAccountId, true, "Vendor");
+        handleGetToken(routingContext, "vatmAsyncService", UUID.randomUUID().toString(), vendorId, vendorClientAccountId, true, "Vendor");
     }
 
     private void handleGetToken(RoutingContext routingContext, String audience, String subject, String vendorId, String vendorClientAccountId, boolean async, String issuer) {
@@ -57,5 +59,13 @@ public class TokenController {
 
         response.putHeader("TOKEN", jwt);
         response.end();
+    }
+
+    private String getParam(HttpServerRequest request, String paramName, String defaultValue) {
+        String param = request.getParam(paramName);
+        if (StringUtils.isBlank(param)) {
+            return defaultValue;
+        }
+        return param;
     }
 }
