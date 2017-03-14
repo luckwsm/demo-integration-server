@@ -59,9 +59,10 @@ public class FileDataRepository {
                 for (String fileDataRow : dataRows) {
                     String[] fileDataRowParts = fileDataRow.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
-                    JsonObject fileDataRowJson = DataGenerator.createTunecoreDistributionSampleRecord(fileDataRowParts[0], cleanString(fileDataRowParts[1]), fileDataRowParts[2], fileDataRowParts[3],
-                            fileDataRowParts[4], fileDataRowParts[5], fileDataRowParts[6], fileDataRowParts[7], fileDataRowParts[8], fileDataRowParts[9], fileDataRowParts[10],
-                            fileDataRowParts[11], fileDataRowParts[12], Integer.parseInt(fileDataRowParts[13]), fileDataRowParts[14], fileDataRowParts[15], fileDataRowParts[16],
+                    JsonObject fileDataRowJson = DataGenerator.createTunecoreDistributionSampleRecord(fileDataRowParts[0], cleanString(fileDataRowParts[1]), cleanString(fileDataRowParts[2]),
+                            cleanString(fileDataRowParts[3]), cleanString(fileDataRowParts[4]), cleanString(fileDataRowParts[5]), cleanString(fileDataRowParts[6]), cleanString(fileDataRowParts[7]),
+                            cleanString(fileDataRowParts[8]), cleanString(fileDataRowParts[9]), cleanString(fileDataRowParts[10]), cleanString(fileDataRowParts[11]), cleanString(fileDataRowParts[12]),
+                            Integer.parseInt(fileDataRowParts[13]), cleanString(fileDataRowParts[14]), cleanString(fileDataRowParts[15]), cleanString(fileDataRowParts[16]),
                             Integer.parseInt(fileDataRowParts[17]), Double.parseDouble(fileDataRowParts[18]), Double.parseDouble(fileDataRowParts[19]));
 
                     fileRecordsJson.add(fileDataRowJson);
@@ -89,7 +90,7 @@ public class FileDataRepository {
     }
 
     private static String cleanString(String value){
-        if(!value.substring(0, 1).equals("\"")){
+        if(value.length() == 0 || !value.substring(0, 1).equals("\"")){
             return value;
         }
 
