@@ -110,10 +110,9 @@ public class FileDataRepository {
     }
 
     private static JsonObject getFileRecord(String fileType, String csvSchema, JsonArray additionalJweHeaders, FileOptions fileOptions, JsonObject client){
-        final String vendorClientAccountId = client.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("vendorClientAccountId");
         String contentType = "text/csv";
 
-        String fileName = vendorClientAccountId + "-" + csvSchema + ".csv";
+        String fileName = getFileName(csvSchema, client);
 
         if(fileOptions.getSpecifiedFileName() != null){
             fileName = fileOptions.getSpecifiedFileName();
