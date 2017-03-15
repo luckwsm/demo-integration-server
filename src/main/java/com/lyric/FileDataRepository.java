@@ -43,7 +43,7 @@ public class FileDataRepository {
 
     public static JsonArray getFileRecordsJson(String csvSchema, FileOptions fileOptions, JsonObject client){
         JsonArray fileRecordsJson = new JsonArray();
-        String fileName = client.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("vendorClientAccountId") + "-" + csvSchema + ".csv";
+        String fileName = getFileName(csvSchema, client);
         //String fileName = "amyLyricTest-SonyatvStatementSummary.csv";
         byte[] fileData = getFileData(fileName, csvSchema, fileOptions, client);
 
@@ -83,6 +83,18 @@ public class FileDataRepository {
         }
 
         return fileRecordsJson;
+    }
+
+    private static String getFileName(String csvSchema, JsonObject client) {
+        String fileName = client.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("vendorClientAccountId");
+
+        final String masterClientId = client.getJsonObject("userProfile").getJsonObject("vendorAccount").getString("masterClientId", null);
+
+        if(masterClientId != null){
+            fileName += "-" + masterClientId;
+        }
+        fileName += "-" + csvSchema + ".csv";
+        return fileName;
     }
 
     private static BigDecimal bigDecimalOf(String value){

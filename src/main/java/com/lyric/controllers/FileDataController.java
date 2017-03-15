@@ -32,7 +32,7 @@ public class FileDataController {
         String clientId = getParam(req, "id", null);
         String vendorId = getParam(req, "vendorId", System.getenv("DEFAULT_VENDOR_ID"));
 
-        JsonObject client = ClientRepository.findClient(clientId, false, vendorId, options.getJsonObject("clientData"));
+        JsonObject client = ClientRepository.findClient(clientId, false, vendorId, options.getJsonObject("clientOptions"));
 
         JsonArray fileData = new JsonArray();
 
