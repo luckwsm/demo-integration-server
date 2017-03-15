@@ -45,12 +45,12 @@ public class ClientRepository {
     }
 
     private static JsonObject findExistingClient(String vendorClientAccountId, String vendorId, JsonObject clientData){
-        return createClient(vendorClientAccountId, vendorId, clientData.getString("email"), clientData.getString("firstName"),
+        return createClient(vendorClientAccountId, clientData.getString("masterClientId"), vendorId, clientData.getString("email"), clientData.getString("firstName"),
                 clientData.getString("lastName"), clientData.getString("memberSince", "2007-01-01"), clientData.getInteger("paymentTerms", 90),
                 clientData.getString("distributionCycle", "semiannual"));
     }
 
-    private static JsonObject createClient(String vendorClientAccountId, String vendorId, String email, String firstName,
+    private static JsonObject createClient(String vendorClientAccountId, String masterClientId, String vendorId, String email, String firstName,
                                            String lastName, String memberSince, int paymentTerms, String distributionCycle){
         JsonObject user = new JsonObject()
                 .put("firstName", firstName)
@@ -60,6 +60,7 @@ public class ClientRepository {
 
         JsonObject vendorAccount = new JsonObject()
                 .put("vendorClientAccountId", vendorClientAccountId)
+                .put("masterClientId", masterClientId)
                 .put("vendorId", vendorId)
                 .put("memberSince", memberSince)
                 .put("paymentTerms", paymentTerms)
@@ -81,7 +82,7 @@ public class ClientRepository {
         Random r = new Random();
         int random = r.nextInt((END - START) + 1) + START;
 
-        JsonObject userProfile = createClient(vendorClientAccountId, vendorId, String.format("%s@email.com", random),
+        JsonObject userProfile = createClient(vendorClientAccountId, null, vendorId, String.format("%s@email.com", random),
                 String.format("Test%d", random), String.format("User%d", random), "2007-01-01", 90, "semiannual");
 
         if(memberTokenExists){

@@ -41,6 +41,7 @@ public class LyricDemoTests extends TestsBase {
         JsonObject data = new JsonObject();
 
         data.put("clientOptions", new JsonObject()
+                .put("masterClientId", "123456")
                 .put("email", random + "@email.com")
                 .put("firstName", random + "First")
                 .put("lastName", random + "Last"));
