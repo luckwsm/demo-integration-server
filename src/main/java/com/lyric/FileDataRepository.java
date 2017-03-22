@@ -55,7 +55,7 @@ public class FileDataRepository {
         switch (csvSchema) {
             case "TunecoreDistributionSample":
                 //remove header row
-                String[] dataRows = Arrays.copyOfRange(fileDataRows, 1, fileDataRows.length);
+                String[] dataRows = Arrays.copyOfRange(fileDataRows, 1, fileDataRows.length > 50 ? 50 : fileDataRows.length);
                 for (String fileDataRow : dataRows) {
                     String[] fileDataRowParts = fileDataRow.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
