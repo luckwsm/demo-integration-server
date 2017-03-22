@@ -46,8 +46,8 @@ public class DataGenerator {
     }
 
     public static JsonArray buildTunecoreDistributionSampleJson(FileOptions options){
-
-        Random rand = new Random();
+        int seed = 5;
+        Random rand = new Random(seed);
 
         int frequencyInDays = options.getFrequencyInDays() != 0 ? options.getFrequencyInDays() : 30;
         int numberOfPeriods = options.getNumberOfPeriods() != 0 ? options.getNumberOfPeriods() : 12;
