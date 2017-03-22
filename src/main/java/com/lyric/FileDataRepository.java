@@ -9,18 +9,17 @@ import com.amazonaws.util.IOUtils;
 import com.google.common.io.Resources;
 import com.lyric.models.CsvSchemaType;
 import com.lyric.models.FileOptions;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Created by amymadden on 3/9/17.
@@ -55,18 +54,13 @@ public class FileDataRepository {
         switch (csvSchema) {
             case "TunecoreDistributionSample":
                 //remove header row
-                String[] dataRows = Arrays.copyOfRange(fileDataRows, 1, fileDataRows.length > 50 ? 50 : fileDataRows.length);
-                for (String fileDataRow : dataRows) {
-                    String[] fileDataRowParts = fileDataRow.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+                String[] dataRows = Arrays.copyOfRange(fileDataRows, 1, fileDataRows.length);
 
-                    JsonObject fileDataRowJson = DataGenerator.createTunecoreDistributionSampleRecord(fileDataRowParts[0], cleanString(fileDataRowParts[1]), cleanString(fileDataRowParts[2]),
-                            cleanString(fileDataRowParts[3]), cleanString(fileDataRowParts[4]), cleanString(fileDataRowParts[5]), cleanString(fileDataRowParts[6]), cleanString(fileDataRowParts[7]),
-                            cleanString(fileDataRowParts[8]), cleanString(fileDataRowParts[9]), cleanString(fileDataRowParts[10]), cleanString(fileDataRowParts[11]), cleanString(fileDataRowParts[12]),
-                            Integer.parseInt(fileDataRowParts[13]), cleanString(fileDataRowParts[14]), cleanString(fileDataRowParts[15]), cleanString(fileDataRowParts[16]),
-                            Integer.parseInt(fileDataRowParts[17]), Double.parseDouble(fileDataRowParts[18]), Double.parseDouble(fileDataRowParts[19]));
-
-                    fileRecordsJson.add(fileDataRowJson);
+                HashMap<String, JsonObject> hashMap = aggregateRowsBySalesPeriod(dataRows);
+                for (JsonObject entry : hashMap.values()) {
+                    fileRecordsJson.add(entry);
                 }
+
                 break;
             case "SonyatvStatementSummary":
                 for (String fileDataRow : fileDataRows) {
@@ -83,6 +77,33 @@ public class FileDataRepository {
         }
 
         return fileRecordsJson;
+    }
+
+    private static HashMap<String, JsonObject> aggregateRowsBySalesPeriod(String[] dataRows) {
+        HashMap<String, JsonObject> hashMap = new HashMap<String, JsonObject>();
+
+        for (String fileDataRow : dataRows) {
+            String[] fileDataRowParts = fileDataRow.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+
+            final String salesPeriod = fileDataRowParts[0];
+            final double amountEarned = Double.parseDouble(fileDataRowParts[19]);
+            final int unitsSold = Integer.parseInt(fileDataRowParts[17]);
+
+            if (!hashMap.containsKey(salesPeriod)) {
+                JsonObject fileDataRowJson = DataGenerator.createTunecoreDistributionSampleRecord(salesPeriod, unitsSold, amountEarned);
+
+                hashMap.put(salesPeriod, fileDataRowJson);
+            } else {
+                final JsonObject fileDataRowJson = hashMap.get(salesPeriod);
+                int cumulativeUnitsSold = fileDataRowJson.getInteger("unitsSold") + unitsSold;
+                fileDataRowJson.put("unitsSold", cumulativeUnitsSold);
+
+                double cumulativeAmountEarned = fileDataRowJson.getInteger("amountEarned") + amountEarned;
+                fileDataRowJson.put("amountEarned", cumulativeAmountEarned);
+            }
+
+        }
+        return hashMap;
     }
 
     private static String getFileName(String csvSchema, JsonObject client) {

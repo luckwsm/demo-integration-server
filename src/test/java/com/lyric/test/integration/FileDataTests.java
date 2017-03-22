@@ -37,7 +37,7 @@ public class FileDataTests extends TestsBase {
             resp.bodyHandler(data -> {
                 logger.info(data);
                 JsonArray rows = new JsonArray(data.toString());
-                context.assertEquals(totalExpectedRows, rows.size());
+                context.assertEquals(numberOfPeriods, rows.size());
                 async.complete();
             });
 

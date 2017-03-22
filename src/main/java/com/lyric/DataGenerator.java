@@ -111,6 +111,14 @@ public class DataGenerator {
                 ;
     }
 
+    public static JsonObject createTunecoreDistributionSampleRecord(String salesPeriod, int unitsSold, double amountEarned){
+        return new JsonObject()
+                .put("salesPeriod", salesPeriod)
+                .put("unitsSold", unitsSold)
+                .put("amountEarned", amountEarned)
+                ;
+    }
+
     //***********************************STATEMENT SUMMARY (Sony)***********************************
 
     public static String buildSonyatvStatementSummaryFile(FileOptions options, JsonObject client){
